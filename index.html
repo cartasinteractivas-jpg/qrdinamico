@@ -289,7 +289,10 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // --- Elementos del DOM ---
-    const startButton = document.getElementById('start-button');
+    // --- Elementos del DOM ---
+const startButton = document.getElementById('start-button'); // <-- ¡CORREGIDO!
+// ... resto del código
+
     const splashScreen = document.getElementById('splash-screen');
     const formScreen = document.getElementById('form-screen');
     const registrationForm = document.getElementById('registration-form');
@@ -402,3 +405,4 @@ document.addEventListener('DOMContentLoaded', ( ) => {
 
 </body>
 </html>
+
