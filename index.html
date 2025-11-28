@@ -6,13 +6,11 @@
     <title>QR Dinámico - Registro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Este script se carga primero -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-    /* --- (Todo tu CSS va aquí, no necesita cambios ) --- */
     :root {
         --color-gold: #D4AF37;
         --color-dark: #1a1a1a;
@@ -23,7 +21,7 @@
     }
     body {
         margin: 0;
-        font-family: var(--font-sans);
+        font-family: var(--font-sans );
         background: #e9e9e9;
         display: flex;
         justify-content: center;
@@ -47,11 +45,16 @@
         display: flex;
         flex-direction: column;
         transition: opacity 0.8s ease-out;
+        /* Fondo de imagen para carga rápida */
+        background-image: url('https://github.com/cartasinteractivas-jpg/qrmanager/blob/main/qrdinamicopresentacion.mp4?raw=true' );
+        background-size: cover;
+        background-position: center;
     }
     #splash-video-container {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
         overflow: hidden;
+        backdrop-filter: blur(5px); /* Efecto de desenfoque sobre la imagen de fondo */
     }
     #splash-video {
         width: 100%;
@@ -104,15 +107,29 @@
         z-index: 99;
         background: linear-gradient(180deg, #fdfbfb 0%, #ebedee 100%);
         padding: 60px 30px 30px 30px;
-        display: flex;
-        flex-direction: column;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.8s ease-in;
+        overflow: hidden; /* Para controlar las transiciones de los pasos */
     }
     #form-screen.visible {
         opacity: 1;
         pointer-events: auto;
+    }
+    .form-step {
+        position: absolute;
+        top: 60px;
+        left: 30px;
+        right: 30px;
+        transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+    }
+    #step-1 {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    #step-2 {
+        transform: translateX(100%);
+        opacity: 0;
     }
     #form-screen h2 {
         font-family: var(--font-serif);
@@ -123,7 +140,6 @@
     }
     .form-group {
         margin-bottom: 20px;
-        position: relative;
     }
     .form-group label {
         display: block;
@@ -132,7 +148,7 @@
         margin-bottom: 8px;
         font-weight: bold;
     }
-    .form-group input, .form-group select {
+    .form-group input {
         width: 100%;
         padding: 15px;
         border: 1px solid #ccc;
@@ -141,25 +157,46 @@
         font-family: var(--font-sans);
         box-sizing: border-box;
         background-color: #fff;
-        transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .form-group input:focus, .form-group select:focus {
+    .form-group input:focus {
         outline: none;
         border-color: var(--color-gold);
         box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
     }
-    .payment-group {
+    .payment-section {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid var(--color-gold);
+        border-radius: 12px;
+        text-align: center;
+    }
+    .payment-section .yape-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--color-dark);
+        margin: 0;
+    }
+    .payment-section .yape-qr {
+        width: 120px;
+        height: 120px;
+        margin: 15px auto;
+        display: block;
+        background-color: #eee; /* Placeholder color */
+    }
+    .payment-section .yape-info {
+        font-size: 14px;
+        color: #555;
+    }
+    .checkbox-group {
         display: flex;
         align-items: center;
-        gap: 15px;
-        background-color: #fff;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
+        gap: 10px;
+        margin-top: 25px;
     }
-    .payment-group label {
-        margin: 0;
-        flex-grow: 1;
+    .checkbox-group input {
+        width: 20px;
+        height: 20px;
     }
     .submit-button {
         width: 100%;
@@ -172,11 +209,11 @@
         font-weight: bold;
         cursor: pointer;
         margin-top: 20px;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: background-color 0.3s, transform 0.2s;
     }
-    .submit-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    .submit-button:disabled {
+        background: #aaa;
+        cursor: not-allowed;
     }
     #form-message {
         text-align: center;
@@ -188,6 +225,7 @@
 <body>
 
 <div class="mobile-container">
+
     <div id="splash-screen">
         <div id="splash-video-container">
             <video id="splash-video" autoplay muted loop playsinline>
@@ -197,145 +235,169 @@
         <div class="splash-content">
             <h1>QR Dinámico</h1>
             <p>Crea y gestiona tus códigos QR de forma inteligente. Cambia su destino, programa URLs y lleva tus campañas al siguiente nivel.</p>
-            <button id="skip-button" class="splash-button">Empezar Ahora</button>
+            <button id="start-button" class="splash-button">Empezar Ahora</button>
         </div>
     </div>
+
     <div id="form-screen">
-        <h2>Crear Cuenta</h2>
         <form id="registration-form">
-            <div class="form-group">
-                <label for="usuario">Nombre de Usuario</label>
-                <input type="text" id="usuario" required>
-            </div>
-            <div class="form-group">
-                <label for="clave">Clave</label>
-                <input type="password" id="clave" required>
-            </div>
-            <div class="form-group">
-                <label for="url-activo">URL de Destino Inicial</label>
-                <input type="url" id="url-activo" placeholder="https://ejemplo.com" required>
-            </div>
-            <div class="form-group">
-                <div class="payment-group">
-                    <label for="pago">¿Realizó el pago inicial?</label>
-                    <select id="pago">
-                        <option value="false" selected>No</option>
-                        <option value="true">Sí</option>
-                    </select>
+            <!-- Paso 1: Datos iniciales -->
+            <div id="step-1" class="form-step">
+                <h2>Paso 1: Tus Datos</h2>
+                <div class="form-group">
+                    <label for="usuario">Nombre o Usuario</label>
+                    <input type="text" id="usuario" required>
                 </div>
+                <div class="form-group">
+                    <label for="url-activo">URL de tu Empresa o Carta</label>
+                    <input type="url" id="url-activo" placeholder="https://ejemplo.com" required>
+                </div>
+                <button type="button" id="continue-button" class="submit-button">Continuar</button>
             </div>
-            <button type="submit" class="submit-button">Inscribirse</button>
+
+            <!-- Paso 2: Clave y Pago -->
+            <div id="step-2" class="form-step">
+                <h2>Paso 2: Seguridad y Pago</h2>
+                <div class="form-group">
+                    <label for="clave">Crea una Clave</label>
+                    <input type="text" id="clave" required>
+                </div>
+                
+                <div class="payment-section">
+                    <p class="yape-number">967 188 120</p>
+                    <img src="URL_DE_TU_QR_YAPE.png" alt="Código QR de Yape" class="yape-qr">
+                    <p class="yape-info">Costo: <strong>S/ 10.00</strong>. Tienes 10 minutos para yapear.</p>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="payment-checkbox">
+                    <label for="payment-checkbox">He realizado el pago.</label>
+                </div>
+
+                <button type="submit" id="submit-final" class="submit-button" disabled>Mandar</button>
+            </div>
         </form>
         <p id="form-message"></p>
     </div>
 </div>
 
 <script>
-    // --- INICIO DEL CÓDIGO JAVASCRIPT ---
+document.addEventListener('DOMContentLoaded', ( ) => {
+    // --- Configuración de Supabase ---
+    const supabaseUrl = 'URL_DE_TU_PROYECTO_SUPABASE'; // <-- REEMPLAZAR
+    const supabaseKey = 'TU_SUPABASE_ANON_KEY';      // <-- REEMPLAZAR
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // ¡¡¡LA SOLUCIÓN ESTÁ AQUÍ!!!
-    // Envolvemos TODO el código en este evento para asegurar que se ejecuta
-    // solo cuando la página y todas sus librerías han cargado.
-    document.addEventListener('DOMContentLoaded', ( ) => {
+    // --- Elementos del DOM ---
+    const startButton = document.getElementById('start-button');
+    const splashScreen = document.getElementById('splash-screen');
+    const formScreen = document.getElementById('form-screen');
+    const registrationForm = document.getElementById('registration-form');
+    const continueButton = document.getElementById('continue-button');
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const paymentCheckbox = document.getElementById('payment-checkbox');
+    const submitFinalButton = document.getElementById('submit-final');
+    const formMessage = document.getElementById('form-message');
 
-        // 1. Configuración de Supabase (AHORA DENTRO DEL EVENTO)
-        const supabaseUrl = 'URL_DE_TU_PROYECTO_SUPABASE'; // <-- REEMPLAZAR
-        const supabaseKey = 'TU_SUPABASE_ANON_KEY';      // <-- REEMPLAZAR
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    // --- Datos temporales del formulario ---
+    let formData = {};
 
-        // 2. Lógica de la Interfaz
-        const skipButton = document.getElementById('skip-button'); 
-        const splashScreen = document.getElementById('splash-screen');
-        const formScreen = document.getElementById('form-screen');
-        const registrationForm = document.getElementById('registration-form');
+    // --- Lógica de la Interfaz ---
 
-        // El listener del botón "Empezar Ahora"
-        skipButton.addEventListener('click', () => {
-            splashScreen.style.opacity = '0';
-            formScreen.classList.add('visible');
-            setTimeout(() => {
-                splashScreen.style.display = 'none';
-            }, 800);
-        });
-
-        // El listener del formulario
-        registrationForm.addEventListener('submit', (event) => {
-            event.preventDefault(); // Prevenimos el envío por defecto
-            handleRegistration();   // Llamamos a nuestra función de registro
-        });
-
-        // 3. Función para manejar el registro
-        async function handleRegistration() {
-            const formMessage = document.getElementById('form-message');
-            formMessage.textContent = 'Procesando...';
-            formMessage.style.color = 'var(--color-dark)';
-
-            let nextId;
-            try {
-                const { data: lastRecord, error: idError } = await supabase
-                    .from('qrs')
-                    .select('id')
-                    .order('id', { ascending: false })
-                    .limit(1)
-                    .single();
-
-                if (idError && idError.code !== 'PGRST116') {
-                    throw idError;
-                }
-
-                if (lastRecord) {
-                    const lastIdNumber = parseInt(lastRecord.id, 10);
-                    nextId = lastIdNumber + 1;
-                } else {
-                    nextId = 1;
-                }
-                nextId = String(nextId).padStart(5, '0');
-
-            } catch (error) {
-                console.error('Error al generar el ID:', error.message);
-                formMessage.textContent = 'Error crítico al generar ID. Intente de nuevo.';
-                formMessage.style.color = 'red';
-                return;
-            }
-
-            const usuario = document.getElementById('usuario').value;
-            const clave = document.getElementById('clave').value;
-            const urlActivo = document.getElementById('url-activo').value;
-            const pago = document.getElementById('pago').value === 'true';
-
-            const newRecord = {
-                id: nextId,
-                usuario: usuario,
-                clave: clave,
-                url_activo: urlActivo,
-                pago: pago,
-                fecha_pago: pago ? new Date().toISOString().split('T')[0] : null
-            };
-
-            try {
-                const { error: insertError } = await supabase
-                    .from('qrs')
-                    .insert(newRecord);
-
-                if (insertError) {
-                    throw insertError;
-                }
-
-                formMessage.textContent = `¡Registro exitoso! Tu ID de QR es: ${nextId}`;
-                formMessage.style.color = 'green';
-                registrationForm.reset();
-
-            } catch (error) {
-                console.error('Error al registrar:', error.message);
-                if (error.code === '23505') {
-                     formMessage.textContent = 'Error: El ID generado ya existe. Por favor, intente de nuevo.';
-                } else {
-                     formMessage.textContent = 'Error al guardar el registro. Verifique los datos.';
-                }
-                formMessage.style.color = 'red';
-            }
-        }
+    // Botón "Empezar Ahora"
+    startButton.addEventListener('click', () => {
+        splashScreen.style.opacity = '0';
+        formScreen.classList.add('visible');
+        setTimeout(() => { splashScreen.style.display = 'none'; }, 800);
     });
+
+    // Botón "Continuar" (del paso 1 al 2)
+    continueButton.addEventListener('click', () => {
+        const usuarioInput = document.getElementById('usuario');
+        const urlActivoInput = document.getElementById('url-activo');
+
+        if (!usuarioInput.value || !urlActivoInput.value) {
+            alert('Por favor, completa todos los campos.');
+            return;
+        }
+        
+        // Guardamos los datos del paso 1
+        formData.usuario = usuarioInput.value;
+        formData.url_activo = urlActivoInput.value;
+
+        // Transición
+        step1.style.transform = 'translateX(-100%)';
+        step1.style.opacity = '0';
+        step2.style.transform = 'translateX(0)';
+        step2.style.opacity = '1';
+    });
+
+    // Checkbox de pago
+    paymentCheckbox.addEventListener('change', () => {
+        submitFinalButton.disabled = !paymentCheckbox.checked;
+    });
+
+    // Envío final del formulario
+    registrationForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const claveInput = document.getElementById('clave');
+        if (!claveInput.value) {
+            alert('Por favor, crea una clave.');
+            return;
+        }
+        formData.clave = claveInput.value;
+        handleRegistration();
+    });
+
+    // --- Función de Registro en Supabase ---
+    async function handleRegistration() {
+        formMessage.textContent = 'Procesando...';
+        formMessage.style.color = 'var(--color-dark)';
+
+        let nextId;
+        try {
+            const { data: lastRecord, error } = await supabase.from('qrs').select('id').order('id', { ascending: false }).limit(1).single();
+            if (error && error.code !== 'PGRST116') throw error;
+            nextId = lastRecord ? String(parseInt(lastRecord.id, 10) + 1).padStart(5, '0') : '00001';
+        } catch (error) {
+            formMessage.textContent = 'Error crítico al generar ID.';
+            formMessage.style.color = 'red';
+            return;
+        }
+
+        const newRecord = {
+            id: nextId,
+            usuario: formData.usuario,
+            clave: formData.clave,
+            url_activo: formData.url_activo,
+            pago: true,
+            fecha_pago: new Date().toISOString().split('T')[0]
+        };
+
+        try {
+            const { error } = await supabase.from('qrs').insert(newRecord);
+            if (error) throw error;
+
+            formMessage.textContent = `¡Registro exitoso! Tu ID de QR es: ${nextId}`;
+            formMessage.style.color = 'green';
+            registrationForm.reset();
+            submitFinalButton.disabled = true;
+            // Opcional: volver al paso 1 después de un registro exitoso
+            setTimeout(() => {
+                step2.style.transform = 'translateX(100%)';
+                step2.style.opacity = '0';
+                step1.style.transform = 'translateX(0)';
+                step1.style.opacity = '1';
+                formMessage.textContent = '';
+            }, 4000);
+
+        } catch (error) {
+            formMessage.textContent = 'Error al guardar el registro.';
+            formMessage.style.color = 'red';
+        }
+    }
+});
 </script>
 
 </body>
