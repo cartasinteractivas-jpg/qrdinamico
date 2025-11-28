@@ -289,19 +289,17 @@ document.addEventListener('DOMContentLoaded', ( ) => {
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // --- Elementos del DOM ---
-    // --- Elementos del DOM ---
-const startButton = document.getElementById('start-button'); // <-- ¡CORREGIDO!
-// ... resto del código
+const startButton = document.getElementById('start-button');
+const splashScreen = document.getElementById('splash-screen');
+const formScreen = document.getElementById('form-screen');
+const registrationForm = document.getElementById('registration-form');
+const continueButton = document.getElementById('continue-button');
+const step1 = document.getElementById('step-1');
+const step2 = document.getElementById('step-2');
+const paymentCheckbox = document.getElementById('payment-checkbox');
+const submitFinalButton = document.getElementById('submit-final');
+const formMessage = document.getElementById('form-message');
 
-    const splashScreen = document.getElementById('splash-screen');
-    const formScreen = document.getElementById('form-screen');
-    const registrationForm = document.getElementById('registration-form');
-    const continueButton = document.getElementById('continue-button');
-    const step1 = document.getElementById('step-1');
-    const step2 = document.getElementById('step-2');
-    const paymentCheckbox = document.getElementById('payment-checkbox');
-    const submitFinalButton = document.getElementById('submit-final');
-    const formMessage = document.getElementById('form-message');
 
     // --- Datos temporales del formulario ---
     let formData = {};
@@ -405,4 +403,5 @@ const startButton = document.getElementById('start-button'); // <-- ¡CORREGIDO!
 
 </body>
 </html>
+
 
