@@ -1,405 +1,153 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Dinámico - Registro</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Dinámico - Registro</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-    :root {
-        --color-gold: #D4AF37;
-        --color-dark: #1a1a1a;
-        --color-light: #f4f4f4;
-        --color-marble: #ffffff;
-        --font-serif: 'Playfair Display', serif;
-        --font-sans: 'Roboto', sans-serif;
-    }
-    body {
-        margin: 0;
-        font-family: var(--font-sans );
-        background: #e9e9e9;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-    }
-    .mobile-container {
-        width: 390px;
-        height: 844px;
-        position: relative;
-        overflow: hidden;
-        border-radius: 45px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        background-color: var(--color-marble);
-        border: 10px solid #111;
-    }
-    #splash-screen {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        transition: opacity 0.8s ease-out;
-        /* Fondo de imagen para carga rápida */
-        background-image: url('https://github.com/cartasinteractivas-jpg/qrmanager/blob/main/qrdinamicopresentacion.mp4?raw=true' );
-        background-size: cover;
-        background-position: center;
-    }
-    #splash-video-container {
-        pointer-events: none; /* CORRECCIÓN: Permite que los clics pasen al botón */
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        overflow: hidden;
-        backdrop-filter: blur(5px); /* Efecto de desenfoque sobre la imagen de fondo */
-    }
-    #splash-video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        filter: brightness(0.5);
-    }
-    .splash-content {
-        position: relative;
-        z-index: 2;
-        color: white;
-        text-align: center;
-        padding: 40px 30px;
-        margin-top: 80px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    }
-    .splash-content h1 {
-        font-family: var(--font-serif);
-        font-size: 48px;
-        margin-bottom: 15px;
-    }
-    .splash-content p {
-        font-size: 16px;
-        line-height: 1.6;
-        font-weight: 300;
-        max-width: 300px;
-        margin: 0 auto 40px auto;
-    }
-    .splash-button {
-        background-color: var(--color-gold);
-        color: var(--color-dark);
-        border: none;
-        border-radius: 50px;
-        padding: 15px 40px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: transform 0.2s, box-shadow 0.2s;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .splash-button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-    }
-    #form-screen {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 99;
-        background: linear-gradient(180deg, #fdfbfb 0%, #ebedee 100%);
-        padding: 60px 30px 30px 30px;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.8s ease-in;
-        overflow: hidden; /* Para controlar las transiciones de los pasos */
-    }
-    #form-screen.visible {
-        opacity: 1;
-        pointer-events: auto;
-    }
-    .form-step {
-        position: absolute;
-        top: 60px;
-        left: 30px;
-        right: 30px;
-        transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
-    }
-    #step-1 {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    #step-2 {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    #form-screen h2 {
-        font-family: var(--font-serif);
-        font-size: 36px;
-        color: var(--color-dark);
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    .form-group {
-        margin-bottom: 20px;
-    }
-    .form-group label {
-        display: block;
-        font-size: 14px;
-        color: #555;
-        margin-bottom: 8px;
-        font-weight: bold;
-    }
-    .form-group input {
-        width: 100%;
-        padding: 15px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        font-size: 16px;
-        font-family: var(--font-sans);
-        box-sizing: border-box;
-        background-color: #fff;
-    }
-    .form-group input:focus {
-        outline: none;
-        border-color: var(--color-gold);
-        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
-    }
-    .payment-section {
-        margin-top: 30px;
-        padding: 20px;
-        background-color: #fff;
-        border: 1px solid var(--color-gold);
-        border-radius: 12px;
-        text-align: center;
-    }
-    .payment-section .yape-number {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--color-dark);
-        margin: 0;
-    }
-    .payment-section .yape-qr {
-        width: 120px;
-        height: 120px;
-        margin: 15px auto;
-        display: block;
-        background-color: #eee; /* Placeholder color */
-    }
-    .payment-section .yape-info {
-        font-size: 14px;
-        color: #555;
-    }
-    .checkbox-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 25px;
-    }
-    .checkbox-group input {
-        width: 20px;
-        height: 20px;
-    }
-    .submit-button {
-        width: 100%;
-        background: linear-gradient(45deg, var(--color-dark), #333);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 18px;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        margin-top: 20px;
-        transition: background-color 0.3s, transform 0.2s;
-    }
-    .submit-button:disabled {
-        background: #aaa;
-        cursor: not-allowed;
-    }
-    #form-message {
-        text-align: center;
-        margin-top: 20px;
-        font-weight: bold;
-    }
-</style>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+    body { background:#000; color:white; overflow-x:hidden; }
+
+    /* VIDEO INTRO */
+    #intro { position:fixed; inset:0; z-index:9999; }
+    #intro video { width:100vw; height:100vh; object-fit:cover; }
+    .overlay { position:absolute; inset:0; background:linear-gradient(135deg, rgba(90,0,255,0.85), rgba(147,0,255,0.7)); }
+    .intro-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; width:90%; }
+    .intro-content h1 { font-size:3.5rem; margin-bottom:1rem; text-shadow:0 0 20px rgba(0,0,0,0.8); }
+    .btn-primary { background:linear-gradient(45deg,#9D00FF,#D500FF); border:none; padding:14px 32px; font-size:1.2rem; color:white; border-radius:50px; cursor:pointer; margin-top:2rem; box-shadow:0 10px 30px rgba(157,0,255,0.4); transition:all .3s; }
+    .btn-primary:hover { transform:translateY(-5px); box-shadow:0 15px 40px rgba(157,0,255,0.6); }
+
+    /* FORMULARIO */
+    #formulario { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:linear-gradient(135deg,#1a0033,#000); }
+    .form-card { background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); padding:40px; border-radius:20px; max-width:500px; width:100%; border:1px solid rgba(157,0,255,0.3); text-align:center; }
+    .form-card h2 { font-size:2.5rem; margin-bottom:10px; background:linear-gradient(45deg,#9D00FF,#FF00FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .precio { font-size:1.8rem; color:#00ffea; margin:20px 0; font-weight:bold; }
+    input, button { width:100%; padding:15px; margin:12px 0; border-radius:12px; font-size:1rem; border:none; }
+    input { background:rgba(255,255,255,0.1); border:1px solid rgba(157,0,255,0.5); color:white; }
+    input::placeholder { color:#ccc; }
+    .pago-info { background:rgba(157,0,255,0.15); padding:20px; border-radius:15px; margin:25px 0; }
+    .pago-info h3 { color:#9D00FF; font-size:1.9rem; margin:10px 0; }
+    #mensaje { margin-top:20px; padding:15px; border-radius:10px; font-weight:bold; }
+    .exito { background:#00b894; }
+    .error { background:#e74c3c; }
+    .hidden { display:none !important; }
+  </style>
 </head>
 <body>
 
-<div class="mobile-container">
-
-    <div id="splash-screen">
-        <div id="splash-video-container">
-            <video id="splash-video" autoplay muted loop playsinline>
-                <source src="https://github.com/cartasinteractivas-jpg/qrmanager/blob/main/qrdinamicopresentacion.mp4?raw=true" type="video/mp4">
-            </video>
-        </div>
-        <div class="splash-content">
-            <h1>QR Dinámico</h1>
-            <p>Crea y gestiona tus códigos QR de forma inteligente. Cambia su destino, programa URLs y lleva tus campañas al siguiente nivel.</p>
-            <button id="start-button" class="splash-button">Empezar Ahora</button>
-        </div>
+  <!-- VIDEO INTRO -->
+  <div id="intro" class="intro">
+    <video src="https://github.com/cartasinteractivas-jpg/qrmanager/raw/main/qrdinamicopresentacion.mp4" autoplay muted loop playsinline></video>
+    <div class="overlay"></div>
+    <div class="intro-content">
+      <h1>QR Dinámico Inteligente</h1>
+      <p>Cambia el destino de tu QR cuando quieras</p>
+      <button id="skipBtn" class="btn-primary">Saltar video</button>
     </div>
+  </div>
 
-    <div id="form-screen">
-        <form id="registration-form">
-            <!-- Paso 1: Datos iniciales -->
-            <div id="step-1" class="form-step">
-                <h2>Paso 1: Tus Datos</h2>
-                <div class="form-group">
-                    <label for="usuario">Nombre o Usuario</label>
-                    <input type="text" id="usuario" required>
-                </div>
-                <div class="form-group">
-                    <label for="url-activo">URL de tu Empresa o Carta</label>
-                    <input type="url" id="url-activo" placeholder="https://ejemplo.com" required>
-                </div>
-                <button type="button" id="continue-button" class="submit-button">Continuar</button>
-            </div>
+  <!-- FORMULARIO -->
+  <div id="formulario" class="hidden">
+    <div class="form-card">
+      <h2>¡Activa tu QR Dinámico ya!</h2>
+      <p class="precio">Solo S/ 10 soles al mes</p>
 
-            <!-- Paso 2: Clave y Pago -->
-            <div id="step-2" class="form-step">
-                <h2>Paso 2: Seguridad y Pago</h2>
-                <div class="form-group">
-                    <label for="clave">Crea una Clave</label>
-                    <input type="text" id="clave" required>
-                </div>
-                
-                <div class="payment-section">
-                    <p class="yape-number">967 188 120</p>
-                    <img src="URL_DE_TU_QR_YAPE.png" alt="Código QR de Yape" class="yape-qr">
-                    <p class="yape-info">Costo: <strong>S/ 10.00</strong>. Tienes 10 minutos para yapear.</p>
-                </div>
+      <form id="registroForm">
+        <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel)" required />
+        <input type="password" id="clave" placeholder="Contraseña segura" required />
+        <input type="url" id="url_activo" placeholder="URL inicial[](https://...)" required />
 
-                <div class="checkbox-group">
-                    <input type="checkbox" id="payment-checkbox">
-                    <label for="payment-checkbox">He realizado el pago.</label>
-                </div>
+        <div class="pago-info">
+          <p>Pago mensual por:</p>
+          <h3>YAPE 967 188 120</h3>
+          <label style="display:flex; align-items:center; justify-content:center; margin-top:15px; font-size:1.1rem;">
+            <input type="checkbox" id="pago" required style="width:auto; margin-right:10px; transform:scale(1.5);" />
+            Ya hice el pago de S/10 por Yape
+          </label>
+        </div>
 
-                <button type="submit" id="submit-final" class="submit-button" disabled>Mandar</button>
-            </div>
-        </form>
-        <p id="form-message"></p>
+        <button type="submit" class="btn-primary">ACTIVAR MI QR AHORA</button>
+      </form>
+
+      <div id="mensaje"></div>
     </div>
-</div>
+  </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', ( ) => {
-    // --- Configuración de Supabase ---
-    const supabaseUrl = 'URL_DE_TU_PROYECTO_SUPABASE'; // <-- REEMPLAZAR
-    const supabaseKey = 'TU_SUPABASE_ANON_KEY';      // <-- REEMPLAZAR
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  <script>
+    const SUPABASE_URL = 'https://flcxihzwyexgigavztce.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsY3hpaHp3eWV4Z2lnYXZ6dGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODI0MzAsImV4cCI6MjA3OTg1ODQzMH0.7Ur3LcihnR6wIEM7QjFxNIe4ci2TmIVVt8ZcvekFSqA';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // --- Elementos del DOM ---
-const startButton = document.getElementById('start-button');
-const splashScreen = document.getElementById('splash-screen');
-const formScreen = document.getElementById('form-screen');
-const registrationForm = document.getElementById('registration-form');
-const continueButton = document.getElementById('continue-button');
-const step1 = document.getElementById('step-1');
-const step2 = document.getElementById('step-2');
-const paymentCheckbox = document.getElementById('payment-checkbox');
-const submitFinalButton = document.getElementById('submit-final');
-const formMessage = document.getElementById('form-message');
-
-
-    // --- Datos temporales del formulario ---
-    let formData = {};
-
-    // --- Lógica de la Interfaz ---
-
-    // Botón "Empezar Ahora"
-    startButton.addEventListener('click', () => {
-        splashScreen.style.opacity = '0';
-        formScreen.classList.add('visible');
-        setTimeout(() => { splashScreen.style.display = 'none'; }, 800);
+    document.getElementById('skipBtn').addEventListener('click', () => {
+      document.getElementById('intro').classList.add('hidden');
+      document.getElementById('formulario').classList.remove('hidden');
     });
 
-    // Botón "Continuar" (del paso 1 al 2)
-    continueButton.addEventListener('click', () => {
-        const usuarioInput = document.getElementById('usuario');
-        const urlActivoInput = document.getElementById('url-activo');
-
-        if (!usuarioInput.value || !urlActivoInput.value) {
-            alert('Por favor, completa todos los campos.');
-            return;
-        }
-        
-        // Guardamos los datos del paso 1
-        formData.usuario = usuarioInput.value;
-        formData.url_activo = urlActivoInput.value;
-
-        step1.style.transform = 'translateX(-100%)';
-        step1.style.opacity = '0';
-        step2.style.transform = 'translateX(0)';
-        step2.style.opacity = '1';
-    });
-
-    // Checkbox de pago
-    paymentCheckbox.addEventListener('change', () => {
-        submitFinalButton.disabled = !paymentCheckbox.checked;
-    });
-
-    // Envío final del formulario
-    registrationForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const claveInput = document.getElementById('clave');
-        if (!claveInput.value) {
-            alert('Por favor, crea una clave.');
-            return;
-        }
-        formData.clave = claveInput.value;
-        handleRegistration();
-    });
-
-    // --- Función de Registro en Supabase ---
-    async function handleRegistration() {
-        formMessage.textContent = 'Procesando...';
-        formMessage.style.color = 'var(--color-dark)';
-
-        let nextId;
-        try {
-            const { data: lastRecord, error } = await supabase.from('qrs').select('id').order('id', { ascending: false }).limit(1).single();
-            if (error && error.code !== 'PGRST116') throw error;
-            nextId = lastRecord ? String(parseInt(lastRecord.id, 10) + 1).padStart(5, '0') : '00001';
-        } catch (error) {
-            formMessage.textContent = 'Error crítico al generar ID.';
-            formMessage.style.color = 'red';
-            return;
-        }
-
-        const newRecord = {
-            id: nextId,
-            usuario: formData.usuario,
-            clave: formData.clave,
-            url_activo: formData.url_activo,
-            pago: true,
-            fecha_pago: new Date().toISOString().split('T')[0]
-        };
-
-        try {
-            const { error } = await supabase.from('qrs').insert(newRecord);
-            if (error) throw error;
-
-            formMessage.textContent = `¡Registro exitoso! Tu ID de QR es: ${nextId}`;
-            formMessage.style.color = 'green';
-            registrationForm.reset();
-            submitFinalButton.disabled = true;
-            // Opcional: volver al paso 1 después de un registro exitoso
-            setTimeout(() => {
-                step2.style.transform = 'translateX(100%)';
-                step2.style.opacity = '0';
-                step1.style.transform = 'translateX(0)';
-                step1.style.opacity = '1';
-                formMessage.textContent = '';
-            }, 4000);
-
-        } catch (error) {
-            formMessage.textContent = 'Error al guardar el registro.';
-            formMessage.style.color = 'red';
-        }
+    async function generarNuevoId() {
+      const { data, error } = await supabase.from('qrs').select('id').order('id', { ascending: false }).limit(1);
+      if (error || !data || data.length === 0) return '00001';
+      const ultimo = parseInt(data[0].id);
+      return (ultimo + 1).toString().padStart(5, '0');
     }
-});
-</script>
 
+    document.getElementById('registroForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'Procesando...';
+
+      const usuario = document.getElementById('usuario').value.trim();
+      const clave = document.getElementById('clave').value;
+      const url_activo = document.getElementById('url_activo').value.trim();
+      const pagoConfirmado = document.getElementById('pago').checked;
+
+      if (!pagoConfirmado) {
+        mostrarMensaje('Confirma que ya realizaste el pago de S/10 por Yape', 'error');
+        btn.disabled = false;
+        btn.textContent = 'ACTIVAR MI QR AHORA';
+        return;
+      }
+
+      const nuevoId = await generarNuevoId();
+      const hoy = new Date().toISOString().split('T')[0];
+
+      const { error } = await supabase.from('qrs').insert({
+        id: nuevoId,
+        usuario,
+        clave,
+        url_activo,
+        pago: true,
+        fecha_pago: hoy
+      });
+
+      if (error) {
+        console.error(error);
+        mostrarMensaje('Error al registrar. Intenta otra vez o contáctanos.', 'error');
+      } else {
+        mostrarMensaje(`
+          ¡Perfecto! Tu QR está ACTIVADO<br><br>
+          <strong>ID: ${nuevoId}</strong><br><br>
+          Te enviamos el panel y tu QR por WhatsApp en minutos
+        `, 'exito');
+        document.getElementById('registroForm').reset();
+      }
+      btn.disabled = false;
+      btn.textContent = 'ACTIVAR MI QR AHORA';
+    });
+
+    function mostrarMensaje(texto, tipo) {
+      const msg = document.getElementById('mensaje');
+      msg.innerHTML = texto;
+      msg.className = 'mensaje ' + tipo;
+    }
+
+    setTimeout(() => {
+      if (!document.getElementById('intro').classList.contains('hidden')) {
+        document.getElementById('skipBtn').click();
+      }
+    }, 30000);
+  </script>
 </body>
 </html>
