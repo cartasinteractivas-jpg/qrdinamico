@@ -3,36 +3,214 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR Dinámico - Registro</title>
+  <title>QR Dinámico - Registro Elegante</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
-    body { background:#000; color:white; overflow-x:hidden; }
+    /* Estilos base del nuevo diseño */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width: 100%; height: 100%; font-family: 'Georgia', serif; }
+    
+    .app-wrapper {
+      width: 100%;
+      min-height: 100vh; /* Cambiado a vh para asegurar que cubra toda la altura */
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    /* Estilos para el formulario, adaptados del nuevo diseño */
+    .form-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+    }
 
-    /* VIDEO INTRO */
-    #intro { position:fixed; inset:0; z-index:9999; }
-    #intro video { width:100vw; height:100vh; object-fit:cover; }
-    .overlay { position:absolute; inset:0; background:linear-gradient(135deg, rgba(90,0,255,0.85), rgba(147,0,255,0.7)); }
-    .intro-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; width:90%; }
-    .intro-content h1 { font-size:3.5rem; margin-bottom:1rem; text-shadow:0 0 20px rgba(0,0,0,0.8); }
-    .btn-primary { background:linear-gradient(45deg,#9D00FF,#D500FF); border:none; padding:14px 32px; font-size:1.2rem; color:white; border-radius:50px; cursor:pointer; margin-top:2rem; box-shadow:0 10px 30px rgba(157,0,255,0.4); transition:all .3s; }
-    .btn-primary:hover { transform:translateY(-5px); box-shadow:0 15px 40px rgba(157,0,255,0.6); }
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent 0%, #d4af37 50%, transparent 100%);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
 
-    /* FORMULARIO */
-    #formulario { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:linear-gradient(135deg,#1a0033,#000); }
-    .form-card { background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); padding:40px; border-radius:20px; max-width:500px; width:100%; border:1px solid rgba(157,0,255,0.3); text-align:center; }
-    .form-card h2 { font-size:2.5rem; margin-bottom:10px; background:linear-gradient(45deg,#9D00FF,#FF00FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .precio { font-size:1.8rem; color:#00ffea; margin:20px 0; font-weight:bold; }
-    input, button { width:100%; padding:15px; margin:12px 0; border-radius:12px; font-size:1rem; border:none; }
-    input { background:rgba(255,255,255,0.1); border:1px solid rgba(157,0,255,0.5); color:white; }
-    input::placeholder { color:#ccc; }
-    .pago-info { background:rgba(157,0,255,0.15); padding:20px; border-radius:15px; margin:25px 0; }
-    .pago-info h3 { color:#9D00FF; font-size:1.9rem; margin:10px 0; }
-    #mensaje { margin-top:20px; padding:15px; border-radius:10px; font-weight:bold; }
-    .exito { background:#00b894; }
-    .error { background:#e74c3c; }
+    .form-card:hover::before {
+      transform: translateX(100%);
+    }
+    
+    /* Título principal */
+    .main-title {
+      font-size: 48px; /* Ajustado para el formulario */
+      font-weight: 300;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: 2px;
+      color: #ffffff;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+
+    /* Precio */
+    .precio { 
+      font-size: 24px; 
+      color: #d4af37; 
+      margin: 20px 0; 
+      font-weight: bold; 
+      letter-spacing: 1px;
+    }
+
+    /* Campos de entrada */
+    input { 
+      width: 100%; 
+      padding: 15px; 
+      margin: 12px 0; 
+      border-radius: 4px; /* Más cuadrado para el estilo elegante */
+      font-size: 16px; 
+      border: 1px solid #2a2a2a; 
+      background: #0a0a0a; 
+      color: #ffffff; 
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #d4af37;
+    }
+    input::placeholder { color: #888888; }
+
+    /* Botón principal (CTA) */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 18px 50px;
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #0a0a0a;
+      background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+      font-family: 'Georgia', serif;
+      margin-top: 25px;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+      background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    /* Información de pago */
+    .pago-info { 
+      background: #0a0a0a; 
+      border: 1px solid #2a2a2a;
+      padding: 20px; 
+      border-radius: 4px; 
+      margin: 25px 0; 
+    }
+    .pago-info h3 { 
+      color: #d4af37; 
+      font-size: 28px; 
+      margin: 10px 0; 
+      letter-spacing: 1px;
+    }
+    .pago-info p {
+      color: #cccccc;
+    }
+
+    /* Checkbox */
+    .pago-info label {
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      margin-top: 15px; 
+      font-size: 16px;
+      color: #ffffff;
+    }
+    .pago-info input[type="checkbox"] {
+      width: auto; 
+      margin-right: 10px; 
+      transform: scale(1.2);
+      border-color: #d4af37;
+      background: #1a1a1a;
+    }
+
+    /* Mensajes */
+    #mensaje { margin-top:20px; padding:15px; border-radius:4px; font-weight:bold; }
+    .exito { background:#2ecc71; color:#0a0a0a; } 
+    .error { background:#e74c3c; color:#ffffff; }
     .hidden { display:none !important; }
+
+    /* Estilos para la intro del video */
+    #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; }
+    #intro video { width:100vw; height:100vh; object-fit:cover; }
+    .overlay { position:absolute; inset:0; background:rgba(0, 0, 0, 0.7); }
+    .intro-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; width:90%; }
+    .intro-content h1 { 
+      font-size: 64px; 
+      font-weight: 300; 
+      letter-spacing: 8px; 
+      text-transform: uppercase; 
+      margin-bottom: 20px; 
+      background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+      background-clip: text; 
+    }
+    .intro-content p {
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 3px;
+      color: #ffffff;
+      opacity: 0.9;
+    }
+    .intro-content .btn-primary {
+      margin-top: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .main-title { font-size: 36px; letter-spacing: 4px; }
+      .subtitle { font-size: 16px; letter-spacing: 2px; }
+      .form-card { padding: 30px; }
+      .intro-content h1 { font-size: 36px; letter-spacing: 4px; }
+      .intro-content p { font-size: 16px; letter-spacing: 2px; }
+    }
   </style>
 </head>
 <body>
@@ -49,21 +227,22 @@
   </div>
 
   <!-- FORMULARIO -->
-  <div id="formulario" class="hidden">
+  <div id="formulario" class="app-wrapper hidden">
     <div class="form-card">
-      <h2>¡Activa tu QR Dinámico ya!</h2>
+      <h2 class="main-title">¡Activa tu QR Dinámico ya!</h2>
+      <p class="subtitle">Completa el formulario para empezar</p>
       <p class="precio">Solo S/ 10 soles al mes</p>
 
       <form id="registroForm">
         <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel)" required />
         <input type="password" id="clave" placeholder="Contraseña segura" required />
-        <input type="url" id="url_activo" placeholder="URL inicial[](https://...)" required />
+        <input type="url" id="url_activo" placeholder="URL inicial (https://...)" required />
 
         <div class="pago-info">
           <p>Pago mensual por:</p>
           <h3>YAPE 967 188 120</h3>
-          <label style="display:flex; align-items:center; justify-content:center; margin-top:15px; font-size:1.1rem;">
-            <input type="checkbox" id="pago" required style="width:auto; margin-right:10px; transform:scale(1.5);" />
+          <label>
+            <input type="checkbox" id="pago" required />
             Ya hice el pago de S/10 por Yape
           </label>
         </div>
