@@ -13,7 +13,7 @@
     
     .app-wrapper {
       width: 100%;
-      min-height: 100vh; /* Cambiado a vh para asegurar que cubra toda la altura */
+      min-height: 100vh;
       background: #0a0a0a;
       color: #ffffff;
       overflow-x: hidden;
@@ -24,7 +24,6 @@
       padding: 20px;
     }
     
-    /* Estilos para el formulario, adaptados del nuevo diseño */
     .form-card {
       background: #1a1a1a;
       border: 1px solid #2a2a2a;
@@ -55,9 +54,8 @@
       transform: translateX(100%);
     }
     
-    /* Título principal */
     .main-title {
-      font-size: 48px; /* Ajustado para el formulario */
+      font-size: 48px;
       font-weight: 300;
       letter-spacing: 5px;
       text-transform: uppercase;
@@ -79,7 +77,6 @@
       margin-bottom: 20px;
     }
 
-    /* Precio */
     .precio { 
       font-size: 24px; 
       color: #d4af37; 
@@ -88,12 +85,11 @@
       letter-spacing: 1px;
     }
 
-    /* Campos de entrada */
     input { 
       width: 100%; 
       padding: 15px; 
       margin: 12px 0; 
-      border-radius: 4px; /* Más cuadrado para el estilo elegante */
+      border-radius: 4px;
       font-size: 16px; 
       border: 1px solid #2a2a2a; 
       background: #0a0a0a; 
@@ -106,7 +102,6 @@
     }
     input::placeholder { color: #888888; }
 
-    /* Botón principal (CTA) */
     .btn-primary {
       display: block;
       width: 100%;
@@ -132,11 +127,6 @@
       background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%);
     }
     
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    /* Información de pago */
     .pago-info { 
       background: #0a0a0a; 
       border: 1px solid #2a2a2a;
@@ -154,30 +144,11 @@
       color: #cccccc;
     }
 
-    /* Checkbox */
-    .pago-info label {
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      margin-top: 15px; 
-      font-size: 16px;
-      color: #ffffff;
-    }
-    .pago-info input[type="checkbox"] {
-      width: auto; 
-      margin-right: 10px; 
-      transform: scale(1.2);
-      border-color: #d4af37;
-      background: #1a1a1a;
-    }
-
-    /* Mensajes */
     #mensaje { margin-top:20px; padding:15px; border-radius:4px; font-weight:bold; }
     .exito { background:#2ecc71; color:#0a0a0a; } 
     .error { background:#e74c3c; color:#ffffff; }
     .hidden { display:none !important; }
 
-    /* Estilos para la intro del video */
     #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; }
     #intro video { width:100vw; height:100vh; object-fit:cover; }
     .overlay { position:absolute; inset:0; background:rgba(0, 0, 0, 0.7); }
@@ -215,7 +186,6 @@
 </head>
 <body>
 
-  <!-- VIDEO INTRO -->
   <div id="intro" class="intro">
     <video src="https://github.com/cartasinteractivas-jpg/qrmanager/raw/main/qrdinamicopresentacion.mp4" autoplay muted loop playsinline></video>
     <div class="overlay"></div>
@@ -226,7 +196,6 @@
     </div>
   </div>
 
-  <!-- FORMULARIO -->
   <div id="formulario" class="app-wrapper hidden">
     <div class="form-card">
       <h2 class="main-title">¡Activa tu QR Dinámico ya!</h2>
@@ -237,17 +206,17 @@
         <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel )" required />
         <input type="password" id="clave" placeholder="Contraseña segura" required />
         <input type="url" id="url_activo" placeholder="URL inicial (https://... )" required />
-        
-        <!-- Bloque de Teléfono y Pago Modificado -->
         <input type="tel" id="telefono" placeholder="Tu número de celular (para enviarte el QR)" required />
 
-        <div class="pago-info">
-          <p>Realiza el pago mensual por Yape/Plin al:</p>
-          <h3>967 188 120</h3>
-          <p style="font-size: 14px; margin-top: 10px;">Nos pondremos en contacto contigo para confirmar tu pago y activar tu cuenta.</p>
+        <!-- Bloque de Marketing -->
+        <div class="pago-info" style="background: transparent; border-color: #d4af37;">
+          <h3 style="font-size: 22px;">Miles de URLs en la misma impresión QR</h3>
+          <p style="font-size: 16px; margin-top: 15px; color: #cccccc;">
+            Ahorra en impresiones y maximiza tu alcance. Cambia la dirección de tu QR a una nueva oferta, menú, video o página web cuando quieras, sin reimprimir nada.
+          </p>
         </div>
 
-        <button type="submit" class="btn-primary">ACTIVAR MI QR AHORA</button>
+        <button type="submit" class="btn-primary">SOLICITAR MI QR AHORA</button>
       </form>
 
       <div id="mensaje"></div>
@@ -277,7 +246,6 @@
       btn.disabled = true;
       btn.textContent = 'Procesando...';
 
-      // Leemos los valores de los campos, incluyendo el nuevo campo de teléfono
       const usuario = document.getElementById('usuario').value.trim();
       const clave = document.getElementById('clave').value;
       const url_activo = document.getElementById('url_activo').value.trim();
@@ -286,14 +254,13 @@
       const nuevoId = await generarNuevoId();
       const hoy = new Date().toISOString().split('T')[0];
 
-      // Insertamos los datos en la tabla 'qrs', incluyendo el teléfono
       const { error } = await supabase.from('qrs').insert({
         id: nuevoId,
         usuario,
         clave,
         url_activo,
         telefono: telefono,
-        pago: false, // Lo ponemos en 'false' por defecto, para activarlo manualmente
+        pago: false,
         fecha_pago: hoy
       });
 
@@ -313,7 +280,7 @@
         document.getElementById('registroForm').reset();
       }
       btn.disabled = false;
-      btn.textContent = 'ACTIVAR MI QR AHORA';
+      btn.textContent = 'SOLICITAR MI QR AHORA';
     });
 
     function mostrarMensaje(texto, tipo) {
