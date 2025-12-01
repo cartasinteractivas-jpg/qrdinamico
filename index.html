@@ -36,7 +36,7 @@
       position: relative;
       overflow: hidden;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1 );
     }
 
     .form-card::before {
@@ -234,17 +234,17 @@
       <p class="precio">Solo S/ 10 soles al mes</p>
 
       <form id="registroForm">
-        <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel)" required />
+        <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel )" required />
         <input type="password" id="clave" placeholder="Contraseña segura" required />
-        <input type="url" id="url_activo" placeholder="URL inicial (https://...)" required />
+        <input type="url" id="url_activo" placeholder="URL inicial (https://... )" required />
+        
+        <!-- Bloque de Teléfono y Pago Modificado -->
+        <input type="tel" id="telefono" placeholder="Tu número de celular (para enviarte el QR)" required />
 
         <div class="pago-info">
-          <p>Pago mensual por:</p>
-          <h3>YAPE 967 188 120</h3>
-          <label>
-            <input type="checkbox" id="pago" required />
-            Ya hice el pago de S/10 por Yape
-          </label>
+          <p>Realiza el pago mensual por Yape/Plin al:</p>
+          <h3>967 188 120</h3>
+          <p style="font-size: 14px; margin-top: 10px;">Nos pondremos en contacto contigo para confirmar tu pago y activar tu cuenta.</p>
         </div>
 
         <button type="submit" class="btn-primary">ACTIVAR MI QR AHORA</button>
@@ -257,7 +257,7 @@
   <script>
     const SUPABASE_URL = 'https://flcxihzwyexgigavztce.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsY3hpaHp3eWV4Z2lnYXZ6dGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODI0MzAsImV4cCI6MjA3OTg1ODQzMH0.7Ur3LcihnR6wIEM7QjFxNIe4ci2TmIVVt8ZcvekFSqA';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
 
     document.getElementById('skipBtn').addEventListener('click', () => {
       document.getElementById('intro').classList.add('hidden');
@@ -277,27 +277,23 @@
       btn.disabled = true;
       btn.textContent = 'Procesando...';
 
+      // Leemos los valores de los campos, incluyendo el nuevo campo de teléfono
       const usuario = document.getElementById('usuario').value.trim();
       const clave = document.getElementById('clave').value;
       const url_activo = document.getElementById('url_activo').value.trim();
-      const pagoConfirmado = document.getElementById('pago').checked;
-
-      if (!pagoConfirmado) {
-        mostrarMensaje('Confirma que ya realizaste el pago de S/10 por Yape', 'error');
-        btn.disabled = false;
-        btn.textContent = 'ACTIVAR MI QR AHORA';
-        return;
-      }
+      const telefono = document.getElementById('telefono').value.trim();
 
       const nuevoId = await generarNuevoId();
       const hoy = new Date().toISOString().split('T')[0];
 
+      // Insertamos los datos en la tabla 'qrs', incluyendo el teléfono
       const { error } = await supabase.from('qrs').insert({
         id: nuevoId,
         usuario,
         clave,
         url_activo,
-        pago: true,
+        telefono: telefono,
+        pago: false, // Lo ponemos en 'false' por defecto, para activarlo manualmente
         fecha_pago: hoy
       });
 
@@ -306,9 +302,13 @@
         mostrarMensaje('Error al registrar. Intenta otra vez o contáctanos.', 'error');
       } else {
         mostrarMensaje(`
-          ¡Perfecto! Tu QR está ACTIVADO<br><br>
-          <strong>ID: ${nuevoId}</strong><br><br>
-          Te enviamos el panel y tu QR por WhatsApp en minutos
+          ¡Perfecto! Hemos recibido tu solicitud.  
+  
+
+          <strong>Tu ID de pre-registro es: ${nuevoId}</strong>  
+  
+
+          Te contactaremos por WhatsApp en minutos para confirmar tu pago y enviarte el acceso.
         `, 'exito');
         document.getElementById('registroForm').reset();
       }
