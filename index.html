@@ -268,13 +268,37 @@
         console.error(error);
         mostrarMensaje('Error al registrar. Intenta otra vez o contáctanos.', 'error');
       } else {
+        // --- INICIO DE LA NUEVA LÓGICA DE CORREO ELECTRÓNICO (CLIENTE) ---
+        const emailData = {
+            id: nuevoId,
+            usuario: usuario,
+            clave: clave,
+            url_activo: url_activo,
+            telefono: telefono,
+            fecha_solicitud: hoy
+        };
+
+        // Llamada al endpoint del servidor para enviar el correo
+        // NOTA: Este endpoint debe ser implementado en el servidor (e.g., Supabase Edge Function)
+        fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(emailData)
+        }).then(response => {
+            if (!response.ok) {
+                console.error('Error al enviar el correo electrónico en el servidor.');
+                // No se muestra un error al usuario final, ya que el registro fue exitoso.
+            }
+        }).catch(error => {
+            console.error('Error de red al intentar enviar el correo:', error);
+        });
+        // --- FIN DE LA NUEVA LÓGICA DE CORREO ELECTRÓNICO (CLIENTE) ---
+
         mostrarMensaje(`
           ¡Perfecto! Hemos recibido tu solicitud.  
   
-
           <strong>Tu ID de pre-registro es: ${nuevoId}</strong>  
   
-
           Te contactaremos por WhatsApp en minutos para confirmar tu pago y enviarte el acceso.
         `, 'exito');
         document.getElementById('registroForm').reset();
