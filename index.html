@@ -223,7 +223,7 @@
     </div>
   </div>
 
-  <script>
+<script>
     const SUPABASE_URL = 'https://flcxihzwyexgigavztce.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsY3hpaHp3eWV4Z2lnYXZ6dGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODI0MzAsImV4cCI6MjA3OTg1ODQzMH0.7Ur3LcihnR6wIEM7QjFxNIe4ci2TmIVVt8ZcvekFSqA';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
@@ -240,72 +240,96 @@
       return (ultimo + 1).toString().padStart(5, '0');
     }
 
+    // =================================================================
+    // AQUÍ VA EL NUEVO CÓDIGO QUE TE DI
+    // =================================================================
     document.getElementById('registroForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button');
-      btn.disabled = true;
-      btn.textContent = 'Procesando...';
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
 
-      const usuario = document.getElementById('usuario').value.trim();
-      const clave = document.getElementById('clave').value;
-      const url_activo = document.getElementById('url_activo').value.trim();
-      const telefono = document.getElementById('telefono').value.trim();
+        const usuario = document.getElementById('usuario').value.trim();
+        const clave = document.getElementById('clave').value;
+        const url_activo = document.getElementById('url_activo').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
 
-      const nuevoId = await generarNuevoId();
-      const hoy = new Date().toISOString().split('T')[0];
+        const nuevoId = await generarNuevoId();
+        const hoy = new Date().toISOString().split('T')[0];
 
-      const { error } = await supabase.from('qrs').insert({
-        id: nuevoId,
-        usuario,
-        clave,
-        url_activo,
-        telefono: telefono,
-        pago: false,
-        fecha_pago: hoy
-      });
-
-      if (error) {
-        console.error(error);
-        mostrarMensaje('Error al registrar. Intenta otra vez o contáctanos.', 'error');
-      } else {
-        // --- INICIO DE LA NUEVA LÓGICA DE CORREO ELECTRÓNICO (CLIENTE) ---
-        const emailData = {
+        const nuevoCliente = {
             id: nuevoId,
-            usuario: usuario,
-            clave: clave,
-            url_activo: url_activo,
+            usuario,
+            clave,
+            url_activo,
             telefono: telefono,
-            fecha_solicitud: hoy
+            pago: false,
+            fecha_pago: hoy
         };
 
-        // Llamada al endpoint del servidor para enviar el correo
-        // NOTA: Este endpoint debe ser implementado en el servidor (e.g., Supabase Edge Function)
-        fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(emailData)
-        }).then(response => {
-            if (!response.ok) {
-                console.error('Error al enviar el correo electrónico en el servidor.');
-                // No se muestra un error al usuario final, ya que el registro fue exitoso.
-            }
-        }).catch(error => {
-            console.error('Error de red al intentar enviar el correo:', error);
-        });
-        // --- FIN DE LA NUEVA LÓGICA DE CORREO ELECTRÓNICO (CLIENTE) ---
+        // 1. Insertar en la base de datos
+        const { error: insertError } = await supabase.from('qrs').insert(nuevoCliente);
 
+        if (insertError) {
+            console.error("Error al registrar en la base de datos:", insertError);
+            mostrarMensaje('Error al registrar. Intenta otra vez o contáctanos.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'SOLICITAR MI QR AHORA';
+            return;
+        }
+        
+        // 2. Llamar a la Edge Function usando la URL ABSOLUTA de Supabase
+        try {
+            const functionUrl = 'https://flcxihzwyexgigavztce.supabase.co/functions/v1/send-email'; 
+            
+            const datosParaCorreo = {
+                id: nuevoCliente.id,
+                usuario: nuevoCliente.usuario,
+                clave: nuevoCliente.clave,
+                url_activo: nuevoCliente.url_activo,
+                telefono: nuevoCliente.telefono,
+                fecha_solicitud: nuevoCliente.fecha_pago
+            };
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}` 
+                },
+                body: JSON.stringify(datosParaCorreo )
+            });
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                console.error('Error desde la Edge Function:', errorData);
+            } else {
+                const result = await response.json();
+                console.log('Respuesta de la función de correo:', result.message);
+            }
+
+        } catch (fetchError) {
+            console.error('Error de red o CORS al invocar la función:', fetchError);
+        }
+
+        // 3. Mostrar mensaje de éxito al usuario
         mostrarMensaje(`
-          ¡Perfecto! Hemos recibido tu solicitud.  
+            ¡Perfecto! Hemos recibido tu solicitud.  
   
-          <strong>Tu ID de pre-registro es: ${nuevoId}</strong>  
+
+            <strong>Tu ID de pre-registro es: ${nuevoId}</strong>  
   
-          Te contactaremos por WhatsApp en minutos para confirmar tu pago y enviarte el acceso.
+
+            Te contactaremos por WhatsApp en minutos para confirmar tu pago y enviarte el acceso.
         `, 'exito');
         document.getElementById('registroForm').reset();
-      }
-      btn.disabled = false;
-      btn.textContent = 'SOLICITAR MI QR AHORA';
+        
+        btn.disabled = false;
+        btn.textContent = 'SOLICITAR MI QR AHORA';
     });
+    // =================================================================
+    // FIN DEL NUEVO CÓDIGO
+    // =================================================================
 
     function mostrarMensaje(texto, tipo) {
       const msg = document.getElementById('mensaje');
@@ -321,3 +345,4 @@
   </script>
 </body>
 </html>
+
