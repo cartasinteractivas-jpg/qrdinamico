@@ -260,7 +260,12 @@
         return url;
     }
 
- document.getElementById('registroForm').addEventListener('submit', async (e) => {
+
+
+
+
+    
+document.getElementById('registroForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
     btn.disabled = true;
@@ -272,29 +277,22 @@
     const urlFormateada = formatarUrlInteligente(urlOriginal);
     const telefono = document.getElementById('telefono').value.trim();
 
-    // --- INICIO DE LA NUEVA VALIDACIÓN ---
-
-    // 1. Verificamos si la combinación exacta de usuario y clave ya existe.
+    // 1. Verificación de credenciales existentes (esto no cambia)
     try {
         const { data: existingCredentials, error: checkError } = await supabase
             .from('qrs')
-            .select('id') // Solo necesitamos saber si existe, no necesitamos todos los datos.
+            .select('id')
             .eq('usuario', usuario)
             .eq('clave', clave)
-            .single(); // .single() buscará una única coincidencia.
+            .single();
 
-        // Si no hay error y encontramos datos, significa que la combinación ya fue tomada.
         if (existingCredentials) {
             mostrarMensaje('Ese nombre de usuario y clave ya han sido tomados. Por favor, elige una combinación diferente.', 'error');
             btn.disabled = false;
             btn.textContent = 'SOLICITAR MI QR AHORA';
-            return; // Detenemos la ejecución.
+            return;
         }
-
-        // Si hay un error pero no es porque no se encontró la fila (código 'PGRST116'), lo mostramos.
-        if (checkError && checkError.code !== 'PGRST116') {
-            throw checkError;
-        }
+        if (checkError && checkError.code !== 'PGRST116') throw checkError;
     } catch (error) {
         console.error("Error al verificar credenciales:", error);
         mostrarMensaje('Hubo un error al verificar los datos. Inténtalo de nuevo.', 'error');
@@ -302,8 +300,6 @@
         btn.textContent = 'SOLICITAR MI QR AHORA';
         return;
     }
-    // --- FIN DE LA NUEVA VALIDACIÓN ---
-
 
     if (!urlFormateada) {
         alert('Por favor, ingresa una URL válida.');
@@ -325,7 +321,7 @@
         fecha_pago: hoy
     };
 
-    // 2. Insertar en la base de datos (el resto del código no cambia)
+    // 2. Insertar en la base de datos (esto no cambia)
     const { error: insertError } = await supabase.from('qrs').insert(nuevoCliente);
 
     if (insertError) {
@@ -336,56 +332,64 @@
         return;
     }
     
-    // 3. Llamar a la Edge Function para enviar el correo de notificación
+    // 3. Llamar a la Edge Function para el correo (esto no cambia)
     try {
         const functionUrl = 'https://flcxihzwyexgigavztce.supabase.co/functions/v1/send-email'; 
-        
-        const datosParaCorreo = {
-            id: nuevoCliente.id,
-            usuario: nuevoCliente.usuario,
-            clave: nuevoCliente.clave,
-            url_activo: nuevoCliente.url_activo,
-            telefono: nuevoCliente.telefono,
-            fecha_solicitud: nuevoCliente.fecha_pago
-        };
-
+        const datosParaCorreo = { id: nuevoCliente.id, usuario: nuevoCliente.usuario, clave: nuevoCliente.clave, url_activo: nuevoCliente.url_activo, telefono: nuevoCliente.telefono, fecha_solicitud: nuevoCliente.fecha_pago };
         const response = await fetch(functionUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}` 
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
             body: JSON.stringify(datosParaCorreo )
         });
-
-        if (!response.ok) {
-            const errorData = await response.text();
-            console.error('Error desde la Edge Function:', errorData);
-        } else {
-            const result = await response.json();
-            console.log('Respuesta de la función de correo:', result.message);
-        }
-
+        if (!response.ok) console.error('Error desde la Edge Function:', await response.text());
+        else console.log('Respuesta de la función de correo:', (await response.json()).message);
     } catch (fetchError) {
         console.error('Error de red o CORS al invocar la función:', fetchError);
     }
 
-    // 4. Mostrar mensaje de éxito al usuario
+    // 4. Mostrar mensaje de éxito y preparar para redirigir
     mostrarMensaje(`
-        ¡Perfecto! Hemos recibido tu solicitud.  
+        ¡Perfecto! Registro completado.  
   
 
-        <strong>Tu ID de pre-registro es: ${nuevoId}</strong>  
+        <strong>Tu ID es: ${nuevoId}</strong>  
   
 
-        Te contactaremos por WhatsApp en minutos para confirmar tu pago y enviarte el acceso.
+        Serás redirigido a WhatsApp para completar tu solicitud...
     `, 'exito');
-    document.getElementById('registroForm').reset();
     
-    btn.disabled = false;
-    btn.textContent = 'SOLICITAR MI QR AHORA';
+    // --- INICIO DE LA NUEVA FUNCIONALIDAD DE WHATSAPP ---
+    
+    // 5. Construir el mensaje y el enlace de WhatsApp
+    const mensajeWhatsApp = `Me he inscrito en obtener mi QR Dinamico, (Usuario: ${nuevoCliente.usuario}, Teléfono: ${nuevoCliente.telefono}, URL: ${nuevoCliente.url_activo}, Código: ${nuevoCliente.id})`;
+    
+    // Codificamos el mensaje para que sea seguro en una URL
+    const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
+    
+    // El número de teléfono debe incluir el código de país (51 para Perú)
+    const numeroWhatsApp = '51967188120'; 
+    
+    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+
+    // 6. Esperar unos segundos para que el usuario lea el mensaje y luego redirigir
+    setTimeout(( ) => {
+        window.location.href = urlWhatsApp;
+    }, 3000); // 3 segundos de espera
+
+    // No reseteamos el formulario ni reactivamos el botón, ya que la página va a cambiar.
+
+    // --- FIN DE LA NUEVA FUNCIONALIDAD ---
 });
 
+
+
+
+
+
+
+
+
+    
     function mostrarMensaje(texto, tipo) {
       const msg = document.getElementById('mensaje');
       msg.innerHTML = texto;
@@ -400,5 +404,6 @@
   </script>
 </body>
 </html>
+
 
 
