@@ -204,8 +204,8 @@
 
       <form id="registroForm">
         <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel )" required />
-        <input type="text" id="clave" placeholder="Clave" required />
-        <input type="url" id="url_activo" placeholder="URL inicial (https://... )" required />
+        <input type="text" id="clave" placeholder="Contraseña segura" required />
+        <input type="text" id="url_activo" placeholder="URL inicial (ej: mipagina.com)" required />
         <input type="tel" id="telefono" placeholder="Tu número de celular (para enviarte el QR)" required />
 
         <!-- Bloque de Marketing -->
@@ -223,7 +223,7 @@
     </div>
   </div>
 
-<script>
+  <script>
     const SUPABASE_URL = 'https://flcxihzwyexgigavztce.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsY3hpaHp3eWV4Z2lnYXZ6dGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODI0MzAsImV4cCI6MjA3OTg1ODQzMH0.7Ur3LcihnR6wIEM7QjFxNIe4ci2TmIVVt8ZcvekFSqA';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
@@ -240,9 +240,26 @@
       return (ultimo + 1).toString().padStart(5, '0');
     }
 
-    // =================================================================
-    // AQUÍ VA EL NUEVO CÓDIGO QUE TE DI
-    // =================================================================
+    // FUNCIÓN PARA AUTOCOMPLETADO INTELIGENTE DE URL
+    function formatarUrlInteligente(url) {
+        if (!url || url.trim() === '') return '';
+        url = url.trim();
+
+        if (!/^https?:\/\//i.test(url )) {
+            url = 'https://' + url;
+        }
+
+        let urlSinProtocolo = url.substring(url.indexOf('//' ) + 2);
+        if (!urlSinProtocolo.startsWith('www.') && urlSinProtocolo.split('.').length === 2 && urlSinProtocolo.split('.')[0].length > 0) {
+            url = 'https://www.' + urlSinProtocolo;
+        }
+
+        if (!/\.[a-z]{2,6}(\/.* )?$/i.test(url)) {
+             url += '.com';
+        }
+        return url;
+    }
+
     document.getElementById('registroForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
@@ -251,8 +268,16 @@
 
         const usuario = document.getElementById('usuario').value.trim();
         const clave = document.getElementById('clave').value;
-        const url_activo = document.getElementById('url_activo').value.trim();
+        const urlOriginal = document.getElementById('url_activo').value.trim();
+        const urlFormateada = formatarUrlInteligente(urlOriginal);
         const telefono = document.getElementById('telefono').value.trim();
+
+        if (!urlFormateada) {
+            alert('Por favor, ingresa una URL válida.');
+            btn.disabled = false;
+            btn.textContent = 'SOLICITAR MI QR AHORA';
+            return;
+        }
 
         const nuevoId = await generarNuevoId();
         const hoy = new Date().toISOString().split('T')[0];
@@ -261,8 +286,8 @@
             id: nuevoId,
             usuario,
             clave,
-            url_activo,
-            telefono: telefono,
+            url_activo: urlFormateada,
+            telefono,
             pago: false,
             fecha_pago: hoy
         };
@@ -278,7 +303,7 @@
             return;
         }
         
-        // 2. Llamar a la Edge Function usando la URL ABSOLUTA de Supabase
+        // 2. Llamar a la Edge Function para enviar el correo de notificación
         try {
             const functionUrl = 'https://flcxihzwyexgigavztce.supabase.co/functions/v1/send-email'; 
             
@@ -327,9 +352,6 @@
         btn.disabled = false;
         btn.textContent = 'SOLICITAR MI QR AHORA';
     });
-    // =================================================================
-    // FIN DEL NUEVO CÓDIGO
-    // =================================================================
 
     function mostrarMensaje(texto, tipo) {
       const msg = document.getElementById('mensaje');
@@ -345,5 +367,3 @@
   </script>
 </body>
 </html>
-
-
