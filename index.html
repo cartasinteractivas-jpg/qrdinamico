@@ -208,7 +208,6 @@
         <input type="text" id="url_activo" placeholder="URL inicial (ej: mipagina.com)" required />
         <input type="tel" id="telefono" placeholder="Tu número de celular (para enviarte el QR)" required />
 
-        <!-- Bloque de Marketing -->
         <div class="pago-info" style="background: transparent; border-color: #d4af37;">
           <h3 style="font-size: 22px;">Miles de URLs en la misma impresión QR</h3>
           <p style="font-size: 16px; margin-top: 15px; color: #cccccc;">
@@ -240,24 +239,20 @@
       return (ultimo + 1).toString().padStart(5, '0');
     }
 
-    // FUNCIÓN PARA AUTOCOMPLETADO INTELIGENTE DE URL
     function formatarUrlInteligente(url) {
         if (!url || url.trim() === '') return '';
         url = url.trim();
-
-        if (!/^https?:\/\//i.test(url )) {
-            url = 'https://' + url;
-        }
-
+        if (!/^https?:\/\//i.test(url )) { url = 'https://' + url; }
         let urlSinProtocolo = url.substring(url.indexOf('//' ) + 2);
-        if (!urlSinProtocolo.startsWith('www.') && urlSinProtocolo.split('.').length === 2 && urlSinProtocolo.split('.')[0].length > 0) {
-            url = 'https://www.' + urlSinProtocolo;
-        }
-
-        if (!/\.[a-z]{2,6}(\/.* )?$/i.test(url)) {
-             url += '.com';
-        }
+        if (!urlSinProtocolo.startsWith('www.') && urlSinProtocolo.split('.').length === 2 && urlSinProtocolo.split('.')[0].length > 0) { url = 'https://www.' + urlSinProtocolo; }
+        if (!/\.[a-z]{2,6}(\/.* )?$/i.test(url)) { url += '.com'; }
         return url;
+    }
+
+    function mostrarMensaje(texto, tipo) {
+      const msg = document.getElementById('mensaje');
+      msg.innerHTML = texto;
+      msg.className = 'mensaje ' + tipo;
     }
 
     document.getElementById('registroForm').addEventListener('submit', async (e) => {
@@ -267,10 +262,28 @@
         btn.textContent = 'Procesando...';
 
         const usuario = document.getElementById('usuario').value.trim();
-        const clave = document.getElementById('clave').value;
+        const clave = document.getElementById('clave').value.trim();
         const urlOriginal = document.getElementById('url_activo').value.trim();
         const urlFormateada = formatarUrlInteligente(urlOriginal);
         const telefono = document.getElementById('telefono').value.trim();
+
+        try {
+            const { data: existingCredentials, error: checkError } = await supabase
+                .from('qrs').select('id').eq('usuario', usuario).eq('clave', clave).single();
+            if (existingCredentials) {
+                mostrarMensaje('Ese nombre de usuario y clave ya han sido tomados. Por favor, elige una combinación diferente.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'SOLICITAR MI QR AHORA';
+                return;
+            }
+            if (checkError && checkError.code !== 'PGRST116') throw checkError;
+        } catch (error) {
+            console.error("Error al verificar credenciales:", error);
+            mostrarMensaje('Hubo un error al verificar los datos. Inténtalo de nuevo.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'SOLICITAR MI QR AHORA';
+            return;
+        }
 
         if (!urlFormateada) {
             alert('Por favor, ingresa una URL válida.');
@@ -292,7 +305,6 @@
             fecha_pago: hoy
         };
 
-        // 1. Insertar en la base de datos
         const { error: insertError } = await supabase.from('qrs').insert(nuevoCliente);
 
         if (insertError) {
@@ -303,61 +315,39 @@
             return;
         }
         
-        // 2. Llamar a la Edge Function para enviar el correo de notificación
         try {
             const functionUrl = 'https://flcxihzwyexgigavztce.supabase.co/functions/v1/send-email'; 
-            
-            const datosParaCorreo = {
-                id: nuevoCliente.id,
-                usuario: nuevoCliente.usuario,
-                clave: nuevoCliente.clave,
-                url_activo: nuevoCliente.url_activo,
-                telefono: nuevoCliente.telefono,
-                fecha_solicitud: nuevoCliente.fecha_pago
-            };
-
+            const datosParaCorreo = { id: nuevoCliente.id, usuario: nuevoCliente.usuario, clave: nuevoCliente.clave, url_activo: nuevoCliente.url_activo, telefono: nuevoCliente.telefono, fecha_solicitud: nuevoCliente.fecha_pago };
             const response = await fetch(functionUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}` 
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
                 body: JSON.stringify(datosParaCorreo )
             });
-
-            if (!response.ok) {
-                const errorData = await response.text();
-                console.error('Error desde la Edge Function:', errorData);
-            } else {
-                const result = await response.json();
-                console.log('Respuesta de la función de correo:', result.message);
-            }
-
+            if (!response.ok) console.error('Error desde la Edge Function:', await response.text());
+            else console.log('Respuesta de la función de correo:', (await response.json()).message);
         } catch (fetchError) {
             console.error('Error de red o CORS al invocar la función:', fetchError);
         }
 
-        // 3. Mostrar mensaje de éxito al usuario
         mostrarMensaje(`
-            ¡Perfecto! Hemos recibido tu solicitud.  
+            ¡Perfecto! Registro completado.  
   
 
-            <strong>Tu ID de pre-registro es: ${nuevoId}</strong>  
+            <strong>Tu ID es: ${nuevoId}</strong>  
   
 
-            Te contactaremos por WhatsApp en minutos para confirmar tu pago y enviarte el acceso.
+            Serás redirigido a WhatsApp para completar tu solicitud...
         `, 'exito');
-        document.getElementById('registroForm').reset();
         
-        btn.disabled = false;
-        btn.textContent = 'SOLICITAR MI QR AHORA';
-    });
+        const mensajeWhatsApp = `Me he inscrito en obtener mi QR Dinamico, (Usuario: ${nuevoCliente.usuario}, Teléfono: ${nuevoCliente.telefono}, URL: ${nuevoCliente.url_activo}, Código: ${nuevoCliente.id})`;
+        const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
+        const numeroWhatsApp = '51967188120'; 
+        const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
 
-    function mostrarMensaje(texto, tipo) {
-      const msg = document.getElementById('mensaje');
-      msg.innerHTML = texto;
-      msg.className = 'mensaje ' + tipo;
-    }
+        setTimeout(( ) => {
+            window.location.href = urlWhatsApp;
+        }, 3000);
+    });
 
     setTimeout(() => {
       if (!document.getElementById('intro').classList.contains('hidden')) {
@@ -367,4 +357,3 @@
   </script>
 </body>
 </html>
-
