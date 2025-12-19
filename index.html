@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR Dinámico - Registro Elegante</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
-    /* ... (todos tus estilos CSS van aquí, no necesitan cambios ) ... */
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { width: 100%; height: 100%; font-family: 'Georgia', serif; }
     .app-wrapper { width: 100%; min-height: 100vh; background: #0a0a0a; color: #ffffff; overflow-x: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
@@ -26,30 +24,35 @@
     .pago-info h3 { color: #d4af37; font-size: 28px; margin: 10px 0; letter-spacing: 1px; }
     .pago-info p { color: #cccccc; }
     #mensaje { margin-top:20px; padding:15px; border-radius:4px; font-weight:bold; }
-    .exito { background:#2ecc71; color:#0a0a0a; } 
+    .exito { background:#2ecc71; color:#0a0a0a; }
     .error { background:#e74c3c; color:#ffffff; }
     .hidden { display:none !important; }
-    #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; }
-    #intro video { width:100vw; height:100vh; object-fit:cover; }
+    #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; display: flex; flex-direction: column; }
+    #intro video { width:100vw; height:100vh; object-fit:cover; flex-shrink: 0; }
     .overlay { position:absolute; inset:0; background:rgba(0, 0, 0, 0.7); }
     .intro-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; width:90%; }
     .intro-content h1 { font-size: 64px; font-weight: 300; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .intro-content p { font-size: 20px; font-weight: 300; letter-spacing: 3px; color: #ffffff; opacity: 0.9; }
-    .intro-content .btn-primary { margin-top: 40px; }
-    @media (max-width: 768px) { .main-title { font-size: 36px; letter-spacing: 4px; } .subtitle { font-size: 16px; letter-spacing: 2px; } .form-card { padding: 30px; } .intro-content h1 { font-size: 36px; letter-spacing: 4px; } .intro-content p { font-size: 16px; letter-spacing: 2px; } }
-    #skipBtn { display: none; }
+    .intro-content .btn-primary { margin-top: 40px; display: inline-block; padding: 15px 40px; font-size: 18px; }
+    @media (max-width: 768px) { 
+      .main-title { font-size: 36px; letter-spacing: 4px; } 
+      .subtitle { font-size: 16px; letter-spacing: 2px; } 
+      .form-card { padding: 30px; } 
+      .intro-content h1 { font-size: 36px; letter-spacing: 4px; } 
+      .intro-content p { font-size: 16px; letter-spacing: 2px; } 
+    }
+    #skipBtn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 3; }
   </style>
 </head>
 <body>
-
-  <div id="intro" class="intro">
+  <div id="intro">
     <video src="https://github.com/cartasinteractivas-jpg/qrmanager/raw/main/qrdinamicopresentacion.mp4" autoplay muted loop playsinline></video>
     <div class="overlay"></div>
     <div class="intro-content">
       <h1>QR Dinámico Inteligente</h1>
       <p>Cambia el destino de tu QR cuando quieras</p>
-      <button id="skipBtn" class="btn-primary">Saltar video</button>
     </div>
+    <button id="skipBtn" class="btn-primary">Saltar video</button>
   </div>
 
   <div id="formulario" class="app-wrapper hidden">
@@ -57,23 +60,19 @@
       <h2 class="main-title">¡Activa tu QR Dinámico ya!</h2>
       <p class="subtitle">Completa el formulario para empezar</p>
       <p class="precio">Solo S/ 10 soles al mes</p>
-
       <form id="registroForm">
         <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel )" required />
         <input type="text" id="clave" placeholder="Contraseña segura" required />
         <input type="text" id="url_activo" placeholder="URL inicial (ej: mipagina.com)" required />
         <input type="tel" id="telefono" placeholder="Tu número de celular (para enviarte el QR)" required />
-
         <div class="pago-info" style="background: transparent; border-color: #d4af37;">
           <h3 style="font-size: 22px;">Miles de URLs en la misma impresión QR</h3>
           <p style="font-size: 16px; margin-top: 15px; color: #cccccc;">
             Ahorra en impresiones y maximiza tu alcance. Cambia la dirección de tu QR a una nueva oferta, menú, video o página web cuando quieras, sin reimprimir nada.
           </p>
         </div>
-
         <button type="submit" class="btn-primary">SOLICITAR MI QR AHORA</button>
       </form>
-
       <div id="mensaje"></div>
     </div>
   </div>
@@ -81,13 +80,24 @@
   <script>
     const SUPABASE_URL = 'https://flcxihzwyexgigavztce.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsY3hpaHp3eWV4Z2lnYXZ6dGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODI0MzAsImV4cCI6MjA3OTg1ODQzMH0.7Ur3LcihnR6wIEM7QjFxNIe4ci2TmIVVt8ZcvekFSqA';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    document.getElementById('skipBtn').addEventListener('click', () => {
+    // Función para pasar del intro al formulario
+    function mostrarFormulario() {
       document.getElementById('intro').classList.add('hidden');
       document.getElementById('formulario').classList.remove('hidden');
-    });
+    }
 
+    // Botón "Saltar video"
+    document.getElementById('skipBtn').addEventListener('click', mostrarFormulario);
+
+    // Transición automática después de exactamente 8 segundos
+    const timeoutId = setTimeout(mostrarFormulario, 8000);
+
+    // Si el usuario hace clic en "Saltar", cancelamos el timeout para evitar duplicados
+    document.getElementById('skipBtn').addEventListener('click', () => clearTimeout(timeoutId));
+
+    // Resto del código (registro, etc.) sin cambios
     async function generarNuevoId() {
       const { data, error } = await supabase.from('qrs').select('id').order('id', { ascending: false }).limit(1);
       if (error || !data || data.length === 0) return '00001';
@@ -98,17 +108,19 @@
     function formatarUrlInteligente(url) {
         if (!url || url.trim() === '') return '';
         url = url.trim();
-        if (!/^https?:\/\//i.test(url )) { url = 'https://' + url; }
-        let urlSinProtocolo = url.substring(url.indexOf('//' ) + 2);
-        if (!urlSinProtocolo.startsWith('www.') && urlSinProtocolo.split('.').length === 2 && urlSinProtocolo.split('.')[0].length > 0) { url = 'https://www.' + urlSinProtocolo; }
-        if (!/\.[a-z]{2,6}(\/.* )?$/i.test(url)) { url += '.com'; }
+        if (!/^https?:\/\//i.test(url)) { url = 'https://' + url; }
+        let urlSinProtocolo = url.substring(url.indexOf('//') + 2);
+        if (!urlSinProtocolo.startsWith('www.') && urlSinProtocolo.split('.').length === 2 && urlSinProtocolo.split('.')[0].length > 0) { 
+            url = 'https://www.' + urlSinProtocolo; 
+        }
+        if (!/\.[a-z]{2,6}(\/.*)?$/i.test(url)) { url += '.com'; }
         return url;
     }
 
     function mostrarMensaje(texto, tipo) {
       const msg = document.getElementById('mensaje');
       msg.innerHTML = texto;
-      msg.className = 'mensaje ' + tipo;
+      msg.className = tipo; // ya incluye las clases exito/error
     }
 
     document.getElementById('registroForm').addEventListener('submit', async (e) => {
@@ -150,7 +162,6 @@
 
         const nuevoId = await generarNuevoId();
         const hoy = new Date().toISOString().split('T')[0];
-
         const nuevoCliente = {
             id: nuevoId,
             usuario,
@@ -162,7 +173,6 @@
         };
 
         const { error: insertError } = await supabase.from('qrs').insert(nuevoCliente);
-
         if (insertError) {
             console.error("Error al registrar en la base de datos:", insertError);
             mostrarMensaje('Error al registrar. Intenta otra vez o contáctanos.', 'error');
@@ -170,14 +180,14 @@
             btn.textContent = 'SOLICITAR MI QR AHORA';
             return;
         }
-        
+       
         try {
-            const functionUrl = 'https://flcxihzwyexgigavztce.supabase.co/functions/v1/send-email'; 
+            const functionUrl = 'https://flcxihzwyexgigavztce.supabase.co/functions/v1/send-email';
             const datosParaCorreo = { id: nuevoCliente.id, usuario: nuevoCliente.usuario, clave: nuevoCliente.clave, url_activo: nuevoCliente.url_activo, telefono: nuevoCliente.telefono, fecha_solicitud: nuevoCliente.fecha_pago };
             const response = await fetch(functionUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
-                body: JSON.stringify(datosParaCorreo )
+                body: JSON.stringify(datosParaCorreo)
             });
             if (!response.ok) console.error('Error desde la Edge Function:', await response.text());
             else console.log('Respuesta de la función de correo:', (await response.json()).message);
@@ -186,36 +196,21 @@
         }
 
         mostrarMensaje(`
-            ¡Perfecto! Registro completado.  
-  
-
-            <strong>Tu ID es: ${nuevoId}</strong>  
-  
-
+            ¡Perfecto! Registro completado.
+            <br><br>
+            <strong>Tu ID es: ${nuevoId}</strong>
+            <br><br>
             Serás redirigido a WhatsApp para completar tu solicitud...
         `, 'exito');
-        
+       
         const mensajeWhatsApp = `Me he inscrito en obtener mi QR Dinamico, (Usuario: ${nuevoCliente.usuario}, Teléfono: ${nuevoCliente.telefono}, URL: ${nuevoCliente.url_activo}, Código: ${nuevoCliente.id})`;
         const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
-        const numeroWhatsApp = '51967188120'; 
+        const numeroWhatsApp = '51967188120';
         const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
-
-        setTimeout(( ) => {
+        setTimeout(() => {
             window.location.href = urlWhatsApp;
         }, 3000);
     });
-
-    // Transición automática del video al formulario después de 8 segundos.
-    setTimeout(() => {
-        const introScreen = document.getElementById('intro');
-        const formScreen = document.getElementById('formulario');
-
-        // Solo hacemos la transición si la pantalla de intro todavía está visible.
-        if (!introScreen.classList.contains('hidden')) {
-            introScreen.classList.add('hidden');
-            formScreen.classList.remove('hidden');
-        }
-    }, 8000); // 8000 milisegundos = 8 segundos
   </script>
 </body>
 </html>
