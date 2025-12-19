@@ -7,186 +7,37 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* Estilos base del nuevo diseño */
+    /* ... (todos tus estilos CSS van aquí, no necesitan cambios ) ... */
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { width: 100%; height: 100%; font-family: 'Georgia', serif; }
-    
-    .app-wrapper {
-      width: 100%;
-      min-height: 100vh;
-      background: #0a0a0a;
-      color: #ffffff;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    
-    .form-card {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 8px;
-      padding: 40px;
-      max-width: 500px;
-      width: 100%;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1 );
-    }
-
-    .form-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: linear-gradient(90deg, transparent 0%, #d4af37 50%, transparent 100%);
-      transform: translateX(-100%);
-      transition: transform 0.6s ease;
-    }
-
-    .form-card:hover::before {
-      transform: translateX(100%);
-    }
-    
-    .main-title {
-      font-size: 48px;
-      font-weight: 300;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .subtitle {
-      font-size: 18px;
-      font-weight: 300;
-      letter-spacing: 2px;
-      color: #ffffff;
-      opacity: 0.9;
-      margin-bottom: 20px;
-    }
-
-    .precio { 
-      font-size: 24px; 
-      color: #d4af37; 
-      margin: 20px 0; 
-      font-weight: bold; 
-      letter-spacing: 1px;
-    }
-
-    input { 
-      width: 100%; 
-      padding: 15px; 
-      margin: 12px 0; 
-      border-radius: 4px;
-      font-size: 16px; 
-      border: 1px solid #2a2a2a; 
-      background: #0a0a0a; 
-      color: #ffffff; 
-      transition: border-color 0.3s;
-    }
-    input:focus {
-      outline: none;
-      border-color: #d4af37;
-    }
+    .app-wrapper { width: 100%; min-height: 100vh; background: #0a0a0a; color: #ffffff; overflow-x: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+    .form-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 40px; max-width: 500px; width: 100%; transition: all 0.3s ease; position: relative; overflow: hidden; text-align: center; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1); }
+    .form-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent 0%, #d4af37 50%, transparent 100%); transform: translateX(-100%); transition: transform 0.6s ease; }
+    .form-card:hover::before { transform: translateX(100%); }
+    .main-title { font-size: 48px; font-weight: 300; letter-spacing: 5px; text-transform: uppercase; margin-bottom: 10px; background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; z-index: 1; }
+    .subtitle { font-size: 18px; font-weight: 300; letter-spacing: 2px; color: #ffffff; opacity: 0.9; margin-bottom: 20px; }
+    .precio { font-size: 24px; color: #d4af37; margin: 20px 0; font-weight: bold; letter-spacing: 1px; }
+    input { width: 100%; padding: 15px; margin: 12px 0; border-radius: 4px; font-size: 16px; border: 1px solid #2a2a2a; background: #0a0a0a; color: #ffffff; transition: border-color 0.3s; }
+    input:focus { outline: none; border-color: #d4af37; }
     input::placeholder { color: #888888; }
-
-    .btn-primary {
-      display: block;
-      width: 100%;
-      padding: 18px 50px;
-      font-size: 16px;
-      font-weight: 400;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #0a0a0a;
-      background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-      font-family: 'Georgia', serif;
-      margin-top: 25px;
-    }
-    
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
-      background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%);
-    }
-    
-    .pago-info { 
-      background: #0a0a0a; 
-      border: 1px solid #2a2a2a;
-      padding: 20px; 
-      border-radius: 4px; 
-      margin: 25px 0; 
-    }
-    .pago-info h3 { 
-      color: #d4af37; 
-      font-size: 28px; 
-      margin: 10px 0; 
-      letter-spacing: 1px;
-    }
-    .pago-info p {
-      color: #cccccc;
-    }
-
+    .btn-primary { display: block; width: 100%; padding: 18px 50px; font-size: 16px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #0a0a0a; background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); font-family: 'Georgia', serif; margin-top: 25px; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5); background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%); }
+    .pago-info { background: #0a0a0a; border: 1px solid #2a2a2a; padding: 20px; border-radius: 4px; margin: 25px 0; }
+    .pago-info h3 { color: #d4af37; font-size: 28px; margin: 10px 0; letter-spacing: 1px; }
+    .pago-info p { color: #cccccc; }
     #mensaje { margin-top:20px; padding:15px; border-radius:4px; font-weight:bold; }
     .exito { background:#2ecc71; color:#0a0a0a; } 
     .error { background:#e74c3c; color:#ffffff; }
     .hidden { display:none !important; }
-
     #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; }
     #intro video { width:100vw; height:100vh; object-fit:cover; }
     .overlay { position:absolute; inset:0; background:rgba(0, 0, 0, 0.7); }
     .intro-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; width:90%; }
-    .intro-content h1 { 
-      font-size: 64px; 
-      font-weight: 300; 
-      letter-spacing: 8px; 
-      text-transform: uppercase; 
-      margin-bottom: 20px; 
-      background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); 
-      -webkit-background-clip: text; 
-      -webkit-text-fill-color: transparent; 
-      background-clip: text; 
-    }
-    .intro-content p {
-      font-size: 20px;
-      font-weight: 300;
-      letter-spacing: 3px;
-      color: #ffffff;
-      opacity: 0.9;
-    }
-    .intro-content .btn-primary {
-      margin-top: 40px;
-    }
-
-    @media (max-width: 768px) {
-      .main-title { font-size: 36px; letter-spacing: 4px; }
-      .subtitle { font-size: 16px; letter-spacing: 2px; }
-      .form-card { padding: 30px; }
-      .intro-content h1 { font-size: 36px; letter-spacing: 4px; }
-      .intro-content p { font-size: 16px; letter-spacing: 2px; }
-    }
-
-    /* Oculta el botón de saltar video para una transición automática */
-    #skipBtn {
-        display: none;
-    }
+    .intro-content h1 { font-size: 64px; font-weight: 300; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .intro-content p { font-size: 20px; font-weight: 300; letter-spacing: 3px; color: #ffffff; opacity: 0.9; }
+    .intro-content .btn-primary { margin-top: 40px; }
+    @media (max-width: 768px) { .main-title { font-size: 36px; letter-spacing: 4px; } .subtitle { font-size: 16px; letter-spacing: 2px; } .form-card { padding: 30px; } .intro-content h1 { font-size: 36px; letter-spacing: 4px; } .intro-content p { font-size: 16px; letter-spacing: 2px; } }
+    #skipBtn { display: none; }
   </style>
 </head>
 <body>
@@ -356,8 +207,14 @@
 
     // Transición automática del video al formulario después de 8 segundos.
     setTimeout(() => {
-        // Simulamos el clic en el botón (aunque esté oculto) para reutilizar la lógica.
-        document.getElementById('skipBtn').click();
+        const introScreen = document.getElementById('intro');
+        const formScreen = document.getElementById('formulario');
+
+        // Solo hacemos la transición si la pantalla de intro todavía está visible.
+        if (!introScreen.classList.contains('hidden')) {
+            introScreen.classList.add('hidden');
+            formScreen.classList.remove('hidden');
+        }
     }, 8000); // 8000 milisegundos = 8 segundos
   </script>
 </body>
