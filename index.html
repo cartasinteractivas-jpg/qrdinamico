@@ -182,6 +182,11 @@
       .intro-content h1 { font-size: 36px; letter-spacing: 4px; }
       .intro-content p { font-size: 16px; letter-spacing: 2px; }
     }
+
+    /* Oculta el botón de saltar video para una transición automática */
+    #skipBtn {
+        display: none;
+    }
   </style>
 </head>
 <body>
@@ -349,11 +354,11 @@
         }, 3000);
     });
 
+    // Transición automática del video al formulario después de 8 segundos.
     setTimeout(() => {
-      if (!document.getElementById('intro').classList.contains('hidden')) {
+        // Simulamos el clic en el botón (aunque esté oculto) para reutilizar la lógica.
         document.getElementById('skipBtn').click();
-      }
-    }, 30000);
+    }, 8000); // 8000 milisegundos = 8 segundos
   </script>
 </body>
 </html>
