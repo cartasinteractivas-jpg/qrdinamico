@@ -6,6 +6,7 @@
   <title>QR Dinámico - Registro Elegante</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    /* Estilos base del diseño */
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { width: 100%; height: 100%; font-family: 'Georgia', serif; }
     .app-wrapper { width: 100%; min-height: 100vh; background: #0a0a0a; color: #ffffff; overflow-x: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
@@ -26,42 +27,22 @@
     #mensaje { margin-top:20px; padding:15px; border-radius:4px; font-weight:bold; }
     .exito { background:#2ecc71; color:#0a0a0a; }
     .error { background:#e74c3c; color:#ffffff; }
-    .hidden { display:none !important; }
-    #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; }
-    #intro video { width:100vw; height:100vh; object-fit:cover; }
-    .overlay { position:absolute; inset:0; background:rgba(0, 0, 0, 0.7); }
-    .intro-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; width:90%; }
-    .intro-content h1 { font-size: 64px; font-weight: 300; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .intro-content p { font-size: 20px; font-weight: 300; letter-spacing: 3px; color: #ffffff; opacity: 0.9; }
-    .intro-content .btn-primary { margin-top: 40px; }
     @media (max-width: 768px) { 
       .main-title { font-size: 36px; letter-spacing: 4px; } 
       .subtitle { font-size: 16px; letter-spacing: 2px; } 
       .form-card { padding: 30px; } 
-      .intro-content h1 { font-size: 36px; letter-spacing: 4px; } 
-      .intro-content p { font-size: 16px; letter-spacing: 2px; } 
     }
   </style>
 </head>
 <body>
-  <div id="intro">
-    <video src="https://github.com/cartasinteractivas-jpg/qrmanager/raw/main/qrdinamicopresentacion.mp4" autoplay muted loop playsinline></video>
-    <div class="overlay"></div>
-    <div class="intro-content">
-      <h1>QR Dinámico Inteligente</h1>
-      <p>Cambia el destino de tu QR cuando quieras</p>
-      <!-- El botón vuelve a estar dentro de intro-content para que sea visible -->
-      <button id="skipBtn" class="btn-primary">Saltar video</button>
-    </div>
-  </div>
-
-  <div id="formulario" class="app-wrapper hidden">
+  <!-- El formulario ahora es lo primero que se ve -->
+  <div id="formulario" class="app-wrapper">
     <div class="form-card">
       <h2 class="main-title">¡Activa tu QR Dinámico ya!</h2>
       <p class="subtitle">Completa el formulario para empezar</p>
       <p class="precio">Solo S/ 10 soles al mes</p>
       <form id="registroForm">
-        <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel  )" required />
+        <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel)" required />
         <input type="text" id="clave" placeholder="Contraseña segura" required />
         <input type="text" id="url_activo" placeholder="URL inicial (ej: mipagina.com)" required />
         <input type="tel" id="telefono" placeholder="Tu número de celular (para enviarte el QR)" required />
@@ -82,26 +63,8 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsY3hpaHp3eWV4Z2lnYXZ6dGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODI0MzAsImV4cCI6MjA3OTg1ODQzMH0.7Ur3LcihnR6wIEM7QjFxNIe4ci2TmIVVt8ZcvekFSqA';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
 
-    // --- LÓGICA DE TRANSICIÓN SIMPLIFICADA Y CORREGIDA ---
+    // Toda la lógica de la intro ha sido eliminada.
 
-    // Función única para pasar del intro al formulario
-    function mostrarFormulario() {
-      // Cancela el temporizador automático si el usuario hace clic primero
-      clearTimeout(timeoutId);
-      document.getElementById('intro').classList.add('hidden');
-      document.getElementById('formulario').classList.remove('hidden');
-    }
-
-    // Asigna el evento de clic al botón "Saltar video"
-    document.getElementById('skipBtn').addEventListener('click', mostrarFormulario);
-
-    // Inicia el temporizador para la transición automática después de 8 segundos
-    const timeoutId = setTimeout(mostrarFormulario, 8000);
-
-    // --- FIN DE LA LÓGICA DE TRANSICIÓN ---
-
-
-    // Resto del código (registro, etc.) sin cambios
     async function generarNuevoId() {
       const { data, error } = await supabase.from('qrs').select('id').order('id', { ascending: false }).limit(1);
       if (error || !data || data.length === 0) return '00001';
