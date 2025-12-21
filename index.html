@@ -9,7 +9,7 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { width: 100%; height: 100%; font-family: 'Georgia', serif; }
     .app-wrapper { width: 100%; min-height: 100vh; background: #0a0a0a; color: #ffffff; overflow-x: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-    .form-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 40px; max-width: 500px; width: 100%; transition: all 0.3s ease; position: relative; overflow: hidden; text-align: center; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1); }
+    .form-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 40px; max-width: 500px; width: 100%; transition: all 0.3s ease; position: relative; overflow: hidden; text-align: center; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1 ); }
     .form-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent 0%, #d4af37 50%, transparent 100%); transform: translateX(-100%); transition: transform 0.6s ease; }
     .form-card:hover::before { transform: translateX(100%); }
     .main-title { font-size: 48px; font-weight: 300; letter-spacing: 5px; text-transform: uppercase; margin-bottom: 10px; background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; z-index: 1; }
@@ -27,13 +27,13 @@
     .exito { background:#2ecc71; color:#0a0a0a; }
     .error { background:#e74c3c; color:#ffffff; }
     .hidden { display:none !important; }
-    #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; display: flex; flex-direction: column; }
-    #intro video { width:100vw; height:100vh; object-fit:cover; flex-shrink: 0; }
+    #intro { position:fixed; inset:0; z-index:9999; background: #0a0a0a; }
+    #intro video { width:100vw; height:100vh; object-fit:cover; }
     .overlay { position:absolute; inset:0; background:rgba(0, 0, 0, 0.7); }
     .intro-content { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:2; width:90%; }
     .intro-content h1 { font-size: 64px; font-weight: 300; letter-spacing: 8px; text-transform: uppercase; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .intro-content p { font-size: 20px; font-weight: 300; letter-spacing: 3px; color: #ffffff; opacity: 0.9; }
-    .intro-content .btn-primary { margin-top: 40px; display: inline-block; padding: 15px 40px; font-size: 18px; }
+    .intro-content .btn-primary { margin-top: 40px; }
     @media (max-width: 768px) { 
       .main-title { font-size: 36px; letter-spacing: 4px; } 
       .subtitle { font-size: 16px; letter-spacing: 2px; } 
@@ -41,7 +41,6 @@
       .intro-content h1 { font-size: 36px; letter-spacing: 4px; } 
       .intro-content p { font-size: 16px; letter-spacing: 2px; } 
     }
-    #skipBtn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 3; }
   </style>
 </head>
 <body>
@@ -51,8 +50,9 @@
     <div class="intro-content">
       <h1>QR Dinámico Inteligente</h1>
       <p>Cambia el destino de tu QR cuando quieras</p>
+      <!-- El botón vuelve a estar dentro de intro-content para que sea visible -->
+      <button id="skipBtn" class="btn-primary">Saltar video</button>
     </div>
-    <button id="skipBtn" class="btn-primary">Saltar video</button>
   </div>
 
   <div id="formulario" class="app-wrapper hidden">
@@ -61,7 +61,7 @@
       <p class="subtitle">Completa el formulario para empezar</p>
       <p class="precio">Solo S/ 10 soles al mes</p>
       <form id="registroForm">
-        <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel )" required />
+        <input type="text" id="usuario" placeholder="Usuario (para ingresar al panel  )" required />
         <input type="text" id="clave" placeholder="Contraseña segura" required />
         <input type="text" id="url_activo" placeholder="URL inicial (ej: mipagina.com)" required />
         <input type="tel" id="telefono" placeholder="Tu número de celular (para enviarte el QR)" required />
@@ -80,22 +80,26 @@
   <script>
     const SUPABASE_URL = 'https://flcxihzwyexgigavztce.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsY3hpaHp3eWV4Z2lnYXZ6dGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODI0MzAsImV4cCI6MjA3OTg1ODQzMH0.7Ur3LcihnR6wIEM7QjFxNIe4ci2TmIVVt8ZcvekFSqA';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY );
 
-    // Función para pasar del intro al formulario
+    // --- LÓGICA DE TRANSICIÓN SIMPLIFICADA Y CORREGIDA ---
+
+    // Función única para pasar del intro al formulario
     function mostrarFormulario() {
+      // Cancela el temporizador automático si el usuario hace clic primero
+      clearTimeout(timeoutId);
       document.getElementById('intro').classList.add('hidden');
       document.getElementById('formulario').classList.remove('hidden');
     }
 
-    // Botón "Saltar video"
+    // Asigna el evento de clic al botón "Saltar video"
     document.getElementById('skipBtn').addEventListener('click', mostrarFormulario);
 
-    // Transición automática después de exactamente 8 segundos
+    // Inicia el temporizador para la transición automática después de 8 segundos
     const timeoutId = setTimeout(mostrarFormulario, 8000);
 
-    // Si el usuario hace clic en "Saltar", cancelamos el timeout para evitar duplicados
-    document.getElementById('skipBtn').addEventListener('click', () => clearTimeout(timeoutId));
+    // --- FIN DE LA LÓGICA DE TRANSICIÓN ---
+
 
     // Resto del código (registro, etc.) sin cambios
     async function generarNuevoId() {
@@ -108,19 +112,19 @@
     function formatarUrlInteligente(url) {
         if (!url || url.trim() === '') return '';
         url = url.trim();
-        if (!/^https?:\/\//i.test(url)) { url = 'https://' + url; }
-        let urlSinProtocolo = url.substring(url.indexOf('//') + 2);
+        if (!/^https?:\/\//i.test(url )) { url = 'https://' + url; }
+        let urlSinProtocolo = url.substring(url.indexOf('//' ) + 2);
         if (!urlSinProtocolo.startsWith('www.') && urlSinProtocolo.split('.').length === 2 && urlSinProtocolo.split('.')[0].length > 0) { 
             url = 'https://www.' + urlSinProtocolo; 
         }
-        if (!/\.[a-z]{2,6}(\/.*)?$/i.test(url)) { url += '.com'; }
+        if (!/\.[a-z]{2,6}(\/.* )?$/i.test(url)) { url += '.com'; }
         return url;
     }
 
     function mostrarMensaje(texto, tipo) {
       const msg = document.getElementById('mensaje');
       msg.innerHTML = texto;
-      msg.className = tipo; // ya incluye las clases exito/error
+      msg.className = 'mensaje ' + tipo;
     }
 
     document.getElementById('registroForm').addEventListener('submit', async (e) => {
@@ -187,7 +191,7 @@
             const response = await fetch(functionUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
-                body: JSON.stringify(datosParaCorreo)
+                body: JSON.stringify(datosParaCorreo )
             });
             if (!response.ok) console.error('Error desde la Edge Function:', await response.text());
             else console.log('Respuesta de la función de correo:', (await response.json()).message);
@@ -197,9 +201,13 @@
 
         mostrarMensaje(`
             ¡Perfecto! Registro completado.
-            <br><br>
+              
+  
+
             <strong>Tu ID es: ${nuevoId}</strong>
-            <br><br>
+              
+  
+
             Serás redirigido a WhatsApp para completar tu solicitud...
         `, 'exito');
        
@@ -207,7 +215,7 @@
         const mensajeCodificado = encodeURIComponent(mensajeWhatsApp);
         const numeroWhatsApp = '51967188120';
         const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
-        setTimeout(() => {
+        setTimeout(( ) => {
             window.location.href = urlWhatsApp;
         }, 3000);
     });
